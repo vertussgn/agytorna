@@ -1,44 +1,54 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QLabel>
 #include <QMainWindow>
 #include <QPushButton>
-#include <QString>
 #include <QVector>
+#include <QString>
+#include <QLabel>
 
 QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
-}
+namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 // Nyelv enum
-enum class Language { Hungarian, English, German, Russian };
+enum class Language {
+    Hungarian,
+    English,
+    German,
+    Russian
+};
 
 // Kategória enum
-enum class Category { Vocabulary, Grammar, Sentences, Listening };
+enum class Category {
+    Vocabulary,
+    Grammar,
+    Sentences,
+    Listening
+};
 
 // Nehézségi szint enum
-enum class Difficulty { Beginner, Intermediate, Advanced };
+enum class Difficulty {
+    Beginner,
+    Intermediate,
+    Advanced
+};
 
 // Kérdés struktúra - most nyelvtanuláshoz optimalizálva
-struct Question
-{
-    QString questionText;     // "Mit jelent ez a szó?"
-    QString word;             // A tanítandó szó
-    QVector<QString> answers; // Válaszlehetőségek
-    int correctAnswer;        // Helyes válasz indexe
-    int points;               // Pontérték
-    Language language;        // Nyelv
-    Category category;        // Kategória
-    Difficulty difficulty;    // Nehézségi szint
-    QString explanation;      // Magyarázat (opcionális)
+struct Question {
+    QString questionText;        // "Mit jelent ez a szó?"
+    QString word;                // A tanítandó szó
+    QVector<QString> answers;    // Válaszlehetőségek
+    int correctAnswer;           // Helyes válasz indexe
+    int points;                  // Pontérték
+    Language language;           // Nyelv
+    Category category;           // Kategória
+    Difficulty difficulty;       // Nehézségi szint
+    QString explanation;         // Magyarázat (opcionális)
 };
 
 // Felhasználói statisztika struktúra
-struct LanguageStats
-{
+struct LanguageStats {
     int wordsLearned;
     int quizzesCompleted;
     int totalCorrect;
@@ -57,23 +67,23 @@ public:
     // ========================================================================
     // BARTA CSONGOR - Qt GUI felület kezelés
     // ========================================================================
-    void showMainMenu();    // Főmenü megjelenítése
-    void displayQuestion(); // Kérdés megjelenítése
-    void updateUIState();   // UI állapot frissítése
+    void showMainMenu();           // Főmenü megjelenítése
+    void displayQuestion();        // Kérdés megjelenítése
+    void updateUIState();          // UI állapot frissítése
 
     // ========================================================================
     // SZTÁNYI GYÖRGY - Interaktív elemek
     // ========================================================================
-    void showResults();                                    // Eredménylap megjelenítése
-    void restartGame();                                    // Játék újraindítása
-    void highlightAnswer(int answerIndex, bool isCorrect); // Válasz kiemelése
+    void showResults();            // Eredménylap megjelenítése
+    void restartGame();            // Játék újraindítása
+    void highlightAnswer(int answerIndex, bool isCorrect);  // Válasz kiemelése
 
     // ========================================================================
     // HRABINA GERGŐ - Kérdések és válaszok kezelése
     // ========================================================================
-    void handleAnswer(int answerIndex); // Válasz feldolgozása
-    void showFeedback(bool isCorrect);  // Visszajelzés megjelenítése
-    void enableNextQuestion();          // Következő kérdés engedélyezése
+    void handleAnswer(int answerIndex);     // Válasz feldolgozása
+    void showFeedback(bool isCorrect);      // Visszajelzés megjelenítése
+    void enableNextQuestion();              // Következő kérdés engedélyezése
 
 private slots:
     // ========================================================================
@@ -135,11 +145,11 @@ private:
 
     // Statisztikák
     QMap<Language, LanguageStats> statistics;
-    int currentStreak;     // Napi sorozat
-    int totalWordsLearned; // Összes megtanult szó
+    int currentStreak;              // Napi sorozat
+    int totalWordsLearned;          // Összes megtanult szó
 
     // UI elemek
-    QVector<QPushButton *> answerButtons;
+    QVector<QPushButton*> answerButtons;
 
     // ========================================================================
     // Segéd függvények
