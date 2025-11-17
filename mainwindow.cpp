@@ -208,6 +208,7 @@ void MainWindow::handleAnswer(int answerIndex)
         answerButtons[selectedAnswerIndex]->setStyleSheet(
             "QPushButton { "
             "background-color: white; "
+            "color: #000000; "
             "border: 2px solid #bdc3c7; "
             "border-radius: 10px; "
             "padding: 15px; "
@@ -643,15 +644,18 @@ void MainWindow::createAnswerButtons()
     if (!layout) {
         layout = new QVBoxLayout(ui->answersWidget);
         layout->setSpacing(15);
+        layout->setContentsMargins(0, 0, 0, 0);
     }
 
     for (int i = 0; i < q.answers.size(); i++) {
         QPushButton* btn = new QPushButton(q.answers[i], ui->answersWidget);
         btn->setMinimumHeight(60);
+        btn->setMaximumHeight(60);
         btn->setCursor(Qt::PointingHandCursor);
         btn->setStyleSheet(
             "QPushButton { "
             "background-color: white; "
+            "color: #000000; "
             "border: 2px solid #bdc3c7; "
             "border-radius: 10px; "
             "padding: 15px; "
@@ -661,6 +665,7 @@ void MainWindow::createAnswerButtons()
             "QPushButton:hover { "
             "background-color: #ecf0f1; "
             "border-color: #000000; "
+            "color: #000000; "
             "}"
             );
 
