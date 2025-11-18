@@ -1,53 +1,19 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QPushButton>
-#include <QVector>
-#include <QString>
 #include <QLabel>
-#include <QTimer>
+#include <QMainWindow>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QString>
+#include <QTimer>
+#include <QVector>
+#include "gametypes.h"
+#include "gamelogic.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
-
-// Nyelv enum - 4 nyelv a specifikáció szerint
-enum class Language {
-    Hungarian,
-    English,
-    German,
-    Russian
-};
-
-// Kategória enum
-enum class Category {
-    Vocabulary,
-    Grammar,
-    Sentences,
-    Listening
-};
-
-// Nehézségi szint enum
-enum class Difficulty {
-    Beginner,
-    Intermediate,
-    Advanced
-};
-
-// Kérdés struktúra - később az adatbázisból jön
-struct Question {
-    int id;
-    QString questionText;
-    QString word;
-    QVector<QString> answers;
-    int correctAnswer;
-    int points;
-    Language language;
-    Category category;
-    Difficulty difficulty;
-};
 
 class MainWindow : public QMainWindow
 {
@@ -60,24 +26,24 @@ public:
     // ========================================================================
     // BARTA CSONGOR - Qt GUI felület kezelés
     // ========================================================================
-    void showMainMenu();           // Főmenü és nyelvválasztás megjelenítése
-    void displayQuestion();        // Kérdés és válaszok kirajzolása
-    void updateUIState();          // Válasz után vizuális visszajelzés
+    void showMainMenu();    // Főmenü és nyelvválasztás megjelenítése
+    void displayQuestion(); // Kérdés és válaszok kirajzolása
+    void updateUIState();   // Válasz után vizuális visszajelzés
 
     // ========================================================================
     // SZTÁNYI GYÖRGY - Interaktív elemek (Qt-ben)
     // ========================================================================
-    void showResults();            // Eredménylap és pontszám kijelzése
-    void restartGame();            // Új játékmenet indítása
-    void highlightAnswer(int answerIndex, bool isCorrect);  // Helyes/hibás válasz kiemelése
+    void showResults();                                    // Eredménylap és pontszám kijelzése
+    void restartGame();                                    // Új játékmenet indítása
+    void highlightAnswer(int answerIndex, bool isCorrect); // Helyes/hibás válasz kiemelése
 
     // ========================================================================
     // HRABINA GERGŐ - Kérdések és válaszok interaktív kezelése
     // ========================================================================
-    void handleAnswer(int answerIndex);     // Válasz kijelölése
-    void checkSelectedAnswer();             // Kijelölt válasz ellenőrzése
-    void showFeedback(bool isCorrect);      // Helyes/hibás válasz vizuális visszajelzése
-    void enableNextQuestion();              // Következő kérdés aktiválása
+    void handleAnswer(int answerIndex); // Válasz kijelölése
+    void checkSelectedAnswer();         // Kijelölt válasz ellenőrzése
+    void showFeedback(bool isCorrect);  // Helyes/hibás válasz vizuális visszajelzése
+    void enableNextQuestion();          // Következő kérdés aktiválása
 
 private slots:
     // Nyelvválasztó gombok
@@ -118,15 +84,16 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    GameLogic gameLogic;
 
     // Játék állapot változók
-    QVector<Question> currentQuestions;  // Aktuális kvíz kérdései
-    QVector<Question> questions;         // Összes kérdés (később adatbázisból)
+    QVector<Question> currentQuestions; // Aktuális kvíz kérdései
+    QVector<Question> questions;        // Összes kérdés (később adatbázisból)
     int currentQuestionIndex;
     int correctAnswers;
     int totalPoints;
     bool answerSelected;
-    int selectedAnswerIndex;             // Kiválasztott válasz indexe (ÚJ)
+    int selectedAnswerIndex; // Kiválasztott válasz indexe (ÚJ)
 
     // Kiválasztott beállítások
     Language selectedLanguage;
@@ -138,11 +105,11 @@ private:
     int totalWordsLearned;
 
     // UI elemek
-    QVector<QPushButton*> answerButtons;
+    QVector<QPushButton *> answerButtons;
 
     // Kijelölt gombok tárolása
-    QPushButton* selectedCategoryButton;
-    QPushButton* selectedDifficultyButton;
+    QPushButton *selectedCategoryButton;
+    QPushButton *selectedDifficultyButton;
 
     // ========================================================================
     // Frontend belső segédfüggvények
@@ -156,8 +123,8 @@ private:
     void showStatisticsPage();
 
     // Kijelölés kezelő függvények
-    void handleCategorySelection(QPushButton* button, Category category);
-    void handleDifficultySelection(QPushButton* button, Difficulty difficulty);
+    void handleCategorySelection(QPushButton *button, Category category);
+    void handleDifficultySelection(QPushButton *button, Difficulty difficulty);
 
     // UI szövegek
     QString getLanguageName(Language lang);
