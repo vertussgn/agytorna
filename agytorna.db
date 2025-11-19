@@ -1,0 +1,89 @@
+PRAGMA foreign_keys = ON;
+
+--------------------------------------------------------
+-- 1. FELHASZNÁLÓK TÁBLÁJA
+--------------------------------------------------------
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Alapértelmezett teszt felhasználó
+INSERT OR IGNORE INTO users (id, username)
+VALUES (1, 'demo_jatekos');
+
+--------------------------------------------------------
+-- 2. KÉRDÉSEK TÁBLÁJA
+--------------------------------------------------------
+CREATE TABLE IF NOT EXISTS questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    -- enumnak megfelelő számok:
+    -- language:    0=HU, 1=EN, 2=DE, 3=RU
+    -- category:    0=Vocabulary, 1=Grammar, 2=Sentences, 3=Listening
+    -- difficulty:  0=Beginner, 1=Intermediate, 2=Advanced
+
+    language INTEGER NOT NULL,
+    category INTEGER NOT NULL,
+    difficulty INTEGER NOT NULL,
+
+    question_text TEXT NOT NULL,
+    word TEXT NOT NULL,
+
+    answer_a TEXT NOT NULL,
+    answer_b TEXT NOT NULL,
+    answer_c TEXT NOT NULL,
+    answer_d TEXT NOT NULL,
+
+    correct_answer INTEGER NOT NULL,
+    points INTEGER NOT NULL DEFAULT 10
+);
+
+--------------------------------------------------------
+-- 2.a MINTA KÉRDÉSEK
+--------------------------------------------------------
+INSERT INTO questions (
+    language, category, difficulty,
+    question_text, word,
+    answer_a, answer_b, answer_c, answer_d,
+    correct_answer, points
+) VALUES
+-- English – Vocabulary – Beginner
+(1, 0, 0, 'Mit jelent magyarul?', 'apple',
+ 'alma', 'körte', 'szilva', 'barack', 0, 10),
+
+(1, 0, 0, 'Mit jelent magyarul?', 'dog',
+ 'kutya', 'macska', 'ló', 'tehén', 0, 10),
+
+(1, 0, 0, 'Mit jelent magyarul?', 'house',
+ 'ház', 'kert', 'szoba', 'garázs', 0, 10),
+
+-- English – Vocabulary – Intermediate
+(1, 0, 1, 'Mit jelent magyarul?', 'challenge',
+ 'kihívás', 'lehetőség', 'kudarc', 'gondolat', 0, 15);
+
+--------------------------------------------------------
+-- 3. PONTSZÁMOK / STATISZTIKA TÁBLA
+--------------------------------------------------------
+CREATE TABLE IF NOT EXISTS user_scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    user_id INTEGER NOT NULL,
+    language INTEGER NOT NULL,
+    correct_answers INTEGER NOT NULL,
+    total_questions INTEGER NOT NULL,
+    total_points INTEGER NOT NULL,
+
+    played_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+--------------------------------------------------------
+-- 3.a MINTA EREDMÉNY
+--------------------------------------------------------
+INSERT INTO user_scores (
+    user_id, language, correct_answers, total_questions, total_points
+) VALUES
+(1, 1, 8, 10, 80);
