@@ -1,20 +1,20 @@
 PRAGMA foreign_keys = ON;
 
 --------------------------------------------------------
--- 1. FELHASZNÁLÓK TÁBLÁJA
+-- 1. FELHASZNÁLÓK TÁBLÁJA //VIKTÓRIA
 --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    password TEXT NOT NULL
 );
 
 -- Alapértelmezett teszt felhasználó
-INSERT OR IGNORE INTO users (id, username)
-VALUES (1, 'demo_jatekos');
+INSERT OR IGNORE INTO users (id, username, password)
+VALUES (1, 'demo_jatekos', 'demo123');
 
 --------------------------------------------------------
--- 2. KÉRDÉSEK TÁBLÁJA
+-- 2. KÉRDÉSEK TÁBLÁJA // PÁLL LÁSZLÓ
 --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS questions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS questions (
     answer_d TEXT NOT NULL,
 
     correct_answer INTEGER NOT NULL,
-    points INTEGER NOT NULL DEFAULT 10
+    points INTEGER NOT NULL DEFAULT 1
 );
 
 --------------------------------------------------------
@@ -48,20 +48,199 @@ INSERT INTO questions (
     question_text, word,
     answer_a, answer_b, answer_c, answer_d,
     correct_answer, points
-) VALUES
--- English – Vocabulary – Beginner
-(1, 0, 0, 'Mit jelent magyarul?', 'apple',
- 'alma', 'körte', 'szilva', 'barack', 0, 10),
+) VALUESs
 
-(1, 0, 0, 'Mit jelent magyarul?', 'dog',
- 'kutya', 'macska', 'ló', 'tehén', 0, 10),
+--------------------------------------------------------
+-- HUNGARIAN (0) – Vocabulary (0)
+--------------------------------------------------------
 
-(1, 0, 0, 'Mit jelent magyarul?', 'house',
- 'ház', 'kert', 'szoba', 'garázs', 0, 10),
+-- difficulty: Beginner (0)
+(0,0,0,'Mit jelent angolul?','alma',
+ 'apple','pear','plum','banana',0,1),
 
--- English – Vocabulary – Intermediate
-(1, 0, 1, 'Mit jelent magyarul?', 'challenge',
- 'kihívás', 'lehetőség', 'kudarc', 'gondolat', 0, 15);
+-- difficulty: Intermediate (1)
+(0,0,1,'Mit jelent angolul?','barát',
+ 'enemy','friend','neighbor','stranger',1,1),
+
+-- difficulty: Advanced (2)
+(0,0,2,'Mit jelent angolul?','környezet',
+ 'environment','surrounding','weather','mood',0,1),
+
+--------------------------------------------------------
+-- HUNGARIAN – Grammar (1)
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(0,1,0,'Válaszd ki a helyes alakot!','Én ___ tanulok.',
+ 'van','vagyok','leszek','volt',1,1),
+
+-- difficulty: Intermediate (1)
+(0,1,1,'Egészítsd ki a mondatot!','Holnap ___ moziba megyünk.',
+ 'talán','biztos','már','nem',0,1),
+
+-- difficulty: Advanced (2)
+(0,1,2,'Melyik a helyes?','Ha több pénzem ___, utaznék.',
+ 'lenne','van','volt','lesz',0,1),
+
+--------------------------------------------------------
+-- HUNGARIAN – Sentences (2)
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(0,2,0,'Hogyan mondod angolul?','Hány éves vagy?',
+ 'How old are you?','How are you?','Where are you?','What age you?',0,1),
+
+-- difficulty: Intermediate (1)
+(0,2,1,'Hogyan mondod angolul?','Hol laksz?',
+ 'Where do you live?','Where live you?','Where are you live?','Where are live?',0,1),
+
+-- difficulty: Advanced (2)
+(0,2,2,'Hogyan mondod angolul?','Mikor érkezel?',
+ 'When come you?','When will you arrive?','When are arrive you?','When do arrive?',1,1),
+
+--------------------------------------------------------
+-- ENGLISH (1) – Vocabulary (0)m 
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(1,0,0,'Mit jelent magyarul?','cat',
+ 'kutya','macska','ló','egér',1,1),
+
+-- difficulty: Intermediate (1)
+(1,0,1,'Mit jelent magyarul?','forest',
+ 'erdő','mező','bokor','sziget',0,1),
+
+-- difficulty: Advanced (2)
+(1,0,2,'Mit jelent magyarul?','improvement',
+ 'romlás','fejlődés','kijelentés','megjelenés',1,1),
+
+--------------------------------------------------------
+-- ENGLISH – Grammar (1)
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(1,1,0,'Egészítsd ki a mondatot!','She ___ happy.',
+ 'are','is','be','am',1,1),
+
+-- difficulty: Intermediate (1)
+(1,1,1,'Válaszd ki a helyes alakot!','They ___ working.',
+ 'is','are','be','am',1,1),
+
+-- difficulty: Advanced (2)
+(1,1,2,'Melyik a helyes?','He has ___ apples.',
+ 'much','many','lot','lots',1,1),
+
+--------------------------------------------------------
+-- ENGLISH – Sentences (2)
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(1,2,0,'Hogyan mondod angolul?','Mennyi az idő?',
+ 'What time is it?','How time is it?','What is the time now?','What clock is?',0,1),
+
+-- difficulty: Intermediate (1)
+(1,2,1,'Hogyan mondod angolul?','Hol dolgozol?',
+ 'Where work you?','Where do you work?','Where are working you?','Where are you?',1,1),
+
+-- difficulty: Advanced (2)
+(1,2,2,'Hogyan mondod angolul?','Miért késtél?',
+ 'Why you late?','Why are you late?','Why late are you?','Why did late?',1,1),
+
+--------------------------------------------------------
+-- GERMAN (2) – Vocabulary (0)
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(2,0,0,'Mit jelent magyarul?','das Haus',
+ 'ház','kert','szoba','város',0,1),
+
+-- difficulty: Intermediate (1)
+(2,0,1,'Mit jelent magyarul?','der Freund',
+ 'testvér','barát','szomszéd','ellenség',1,1),
+
+-- difficulty: Advanced (2)
+(2,0,2,'Mit jelent magyarul?','die Umgebung',
+ 'környezet','hangulat','ország','időjárás',0,1),
+
+--------------------------------------------------------
+-- GERMAN – Grammar (1)
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(2,1,0,'Válaszd ki a helyes névelőt!','___ Auto (autó)',
+ 'Der','Die','Das','Den',2,1),
+
+-- difficulty: Intermediate (1)
+(2,1,1,'Egészítsd ki!','Ich ___ müde.',
+ 'bist','sind','bin','seid',2,1),
+
+-- difficulty: Advanced (2)
+(2,1,2,'Melyik a helyes múlt idő?','Er ___ gegangen.',
+ 'habe','hat','ist','seid',2,1),
+
+--------------------------------------------------------
+-- GERMAN – Sentences (2)
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(2,2,0,'Hogyan mondod németül?','Hol laksz?',
+ 'Wo wohnst du?','Wo du wohnst?','Wo wohnen du?','Wo wohnst?',0,1),
+
+-- difficulty: Intermediate (1)
+(2,2,1,'Hogyan mondod németül?','Mikor jössz?',
+ 'Wann kommst du?','Wann du kommst?','Wann kommen du?','Wann bist du?',0,1),
+
+-- difficulty: Advanced (2)
+(2,2,2,'Hogyan mondod németül?','Mit csinálsz?',
+ 'Was machst du?','Was du machst?','Was bist du machen?','Machst was du?',0,1),
+
+--------------------------------------------------------
+-- RUSSIAN (3) – Vocabulary (0)
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(3,0,0,'Mit jelent magyarul?','мама',
+ 'anya','apa','barát','testvér',0,1),
+
+-- difficulty: Intermediate (1)
+(3,0,1,'Mit jelent magyarul?','друг',
+ 'ellenség','barát','szomszéd','testvér',1,1),
+
+-- difficulty: Advanced (2)
+(3,0,2,'Mit jelent magyarul?','окружение',
+ 'környezet','barát','időjárás','ország',0,1),
+
+--------------------------------------------------------
+-- RUSSIAN – Grammar (1)
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(3,1,0,'Egészítsd ki!','Я ___ дома.',
+ 'есть','буду','дома','иду',0,1),
+
+-- difficulty: Intermediate (1)
+(3,1,1,'Válaszd ki a helyes alakot!','Он ___ читать.',
+ 'любить','любит','любишь','люблю',1,1),
+
+-- difficulty: Advanced (2)
+(3,1,2,'Melyik a helyes?','Мы ___ в школу.',
+ 'идёшь','идут','идём','идёт',2,1),
+
+--------------------------------------------------------
+-- RUSSIAN – Sentences (2)
+--------------------------------------------------------
+
+-- difficulty: Beginner (0)
+(3,2,0,'Hogyan mondod oroszul?','Hogy vagy?',
+ 'Как ты?','Кто ты?','Где ты?','Какой ты?',0,1),
+
+-- difficulty: Intermediate (1)
+(3,2,1,'Hogyan mondod oroszul?','Hol élsz?',
+ 'Где ты живёшь?','Где живёшь?','Ты где живёшь?','Где ты есть?',0,1),
+
+-- difficulty: Advanced (2)
+(3,2,2,'Hogyan mondod oroszul?','Miért jöttél?',
+ 'Почему пришёл?','Зачем пришёл?','Когда пришёл?','Где пришёл?',0,1);
 
 --------------------------------------------------------
 -- 3. PONTSZÁMOK / STATISZTIKA TÁBLA
@@ -81,7 +260,7 @@ CREATE TABLE IF NOT EXISTS user_scores (
 );
 
 --------------------------------------------------------
--- 3.a MINTA EREDMÉNY
+-- 3.a MINTA EREDMÉNY //VIKTORIA
 --------------------------------------------------------
 INSERT INTO user_scores (
     user_id, language, correct_answers, total_questions, total_points
