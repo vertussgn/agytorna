@@ -87,9 +87,9 @@ private:
     GameLogic gameLogic;
 
     // Játék állapot változók
-    QVector<Question> currentQuestions; // Aktuális kvíz kérdései
-    QVector<Question> questions;        // Összes kérdés (később adatbázisból)
-    int currentQuestionIndex;
+    // QVector<Question> currentQuestions; // Aktuális kvíz kérdései
+    // QVector<Question> questions;        // Összes kérdés (később adatbázisból)
+    // int currentQuestionIndex;
     int correctAnswers;
     int totalPoints;
     bool answerSelected;
@@ -115,7 +115,7 @@ private:
     // Frontend belső segédfüggvények
     // ========================================================================
     void setupConnections();
-    void createAnswerButtons();
+    void createAnswerButtons(const Question& q);
     void clearAnswerButtons();
     void updateQuestionCounter();
     void updateCurrentScore();

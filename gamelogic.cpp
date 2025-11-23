@@ -1,5 +1,6 @@
 #include "gamelogic.h"
 #include <QRandomGenerator>
+#include <QDebug>
 
 // ========================================================================
 // Bányai Bence
@@ -7,6 +8,10 @@
 
 GameLogic::GameLogic()
 {
+    currentLanguage = Language::English;
+    currentCategory = Category::Vocabulary;
+    currentDifficulty = Difficulty::Beginner;
+    currentQuestionIndex = -1;
     // Inicializáláskor betöltjük a tesztadatokat
     initMockDatabase();
 }
@@ -262,4 +267,96 @@ void GameLogic::initMockDatabase()
         q.correctAnswer = 1; // Barát
         mockDatabase.append(q);
     }
+}
+
+// ========================================================================
+// Kosztel Tamás
+// ========================================================================
+
+QVector<Question> GameLogic::filterQuestions(Language lang, Category cat, Difficulty diff)
+{
+    QVector<Question> filtered;
+
+    for (const Question& q : mockDatabase) {
+        if (q.language == lang && q.category == cat && q.difficulty == diff) {
+            filtered.append(q);
+        }
+    }
+
+    // Ideális esetben a szűrés után az egész listát összekeverjük.
+    std::mt19937 engine(QRandomGenerator::global()->generate());
+
+    // Keverés a std::shuffle segítségével
+    std::shuffle(filtered.begin(), filtered.end(), engine);
+
+    // Opcionálisan: korlátozzuk a kérdések számát, pl. 10-re
+    if (filtered.size() > 10) {
+        filtered.resize(10);
+    }
+
+    return filtered;
+}
+
+// ------------------------------------------------------------------------
+
+// 1. Nyelv beállítása
+void GameLogic::setLanguage(Language lang)
+{
+    // A kiválasztott nyelvet eltároljuk egy tagváltozóban.
+    currentLanguage = lang;
+    // A MainWindow-ban a nyelvválasztás után hívódik.
+}
+
+// 2. Kerdéspool betöltése
+void GameLogic::loadLanguageData()
+{
+    qDebug() << "GameLogic: loadLanguageData() - Nyelvváltás felkészítés indult: "
+             << (int)currentLanguage;
+}
+
+// 3. Kérdések frissítése
+void GameLogic::refreshQuestionPool(Category cat, Difficulty diff)
+{
+    // A kategóriát és nehézséget is eltároljuk.
+    currentCategory = cat;
+    currentDifficulty = diff;
+
+    // Szűrés a tagváltozók alapján
+    currentQuizQuestions = filterQuestions(currentLanguage, currentCategory, currentDifficulty);
+
+    // Az index beállítása a kvíz elejére (vagy -1-re, ha üres a lista)
+    if (!currentQuizQuestions.isEmpty()) {
+        currentQuestionIndex = 0;
+    } else {
+        currentQuestionIndex = -1;
+    }
+}
+
+// ------------------------------------------------------------------------
+
+// 4. Kvíz navigáció és állapot
+
+const Question* GameLogic::getCurrentQuestion() const
+{
+    if (currentQuestionIndex >= 0 && currentQuestionIndex < currentQuizQuestions.size()) {
+        // Visszaadja az aktuális kérdésre mutató pointert
+        return &currentQuizQuestions[currentQuestionIndex];
+    }
+
+    // Ha vége a kvíznek, vagy nem indult el, nullptr-t ad vissza
+    return nullptr;
+}
+
+void GameLogic::nextQuestion()
+{
+    if (currentQuestionIndex < currentQuizQuestions.size()) {
+        currentQuestionIndex++;
+    }
+    // Ha már a lista végén vagyunk, az index marad currentQuizQuestions.size(),
+}
+
+bool GameLogic::isQuizFinished() const
+{
+    // Akkor fejeződött be, ha az index túlmutat a lista utolsó elemén.
+    return currentQuestionIndex >= currentQuizQuestions.size();
 }

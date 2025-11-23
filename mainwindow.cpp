@@ -7,7 +7,6 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , currentQuestionIndex(0)
     , correctAnswers(0)
     , totalPoints(0)
     , answerSelected(false)
@@ -47,22 +46,22 @@ void MainWindow::showMainMenu()
 
 void MainWindow::displayQuestion()
 {
-    if (currentQuestionIndex >= currentQuestions.size()) {
-        showResults();
+    const Question* currentQ = gameLogic.getCurrentQuestion();
+
+    if (currentQ == nullptr) {
+        showResults(); // Kvíz befejeződött
         return;
     }
 
-    Question &q = currentQuestions[currentQuestionIndex];
-
     // Kérdés szöveg megjelenítése
-    ui->questionLabel->setText(q.questionText);
+    ui->questionLabel->setText(currentQ->questionText);
 
     // Tanítandó szó/mondat megjelenítése
-    ui->wordLabel->setText(q.word);
+    ui->wordLabel->setText(currentQ->word);
 
     // Válaszgombok létrehozása
     clearAnswerButtons();
-    createAnswerButtons();
+    createAnswerButtons(*currentQ);
 
     // Visszajelzés törlése
     ui->feedbackLabel->clear();
@@ -97,12 +96,14 @@ void MainWindow::showResults()
 {
     ui->stackedWidget->setCurrentWidget(ui->resultsPage);
 
+    int quizSize = gameLogic.getTotalQuestions();
+
     // Eredmények számítása és megjelenítése
-    QString scoreText = QString("%1 / %2").arg(correctAnswers).arg(currentQuestions.size());
+    QString scoreText = QString("%1 / %2").arg(correctAnswers).arg(quizSize);
     ui->resultLabel->setText(scoreText);
 
-    double percentage = (currentQuestions.size() > 0)
-                            ? (correctAnswers * 100.0 / currentQuestions.size())
+    double percentage = (quizSize > 0)
+                            ? (correctAnswers * 100.0 / quizSize)
                             : 0.0;
     ui->percentageLabel->setText(QString("%1%").arg(QString::number(percentage, 'f', 0)));
 
@@ -117,16 +118,16 @@ void MainWindow::showResults()
 
 void MainWindow::restartGame()
 {
-    currentQuestionIndex = 0;
+    // Lokális UI statisztikák nullázása
     correctAnswers = 0;
     totalPoints = 0;
     answerSelected = false;
     selectedAnswerIndex = -1;
 
-    // Új kérdések betöltése backend-ből
-    loadQuestionsFromBackend();
+    // Kérdéspool frissítése a GameLogic-ban
+    gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
 
-    if (currentQuestions.isEmpty()) {
+    if (gameLogic.getTotalQuestions() == 0) {
         QMessageBox::information(this,
                                  "Nincs kérdés",
                                  "Ehhez a kombinációhoz még nincsenek kérdések az adatbázisban.");
@@ -139,6 +140,8 @@ void MainWindow::restartGame()
 
 void MainWindow::highlightAnswer(int answerIndex, bool isCorrect)
 {
+    const Question* currentQ = gameLogic.getCurrentQuestion();
+
     if (answerIndex >= 0 && answerIndex < answerButtons.size()) {
         QPushButton *btn = answerButtons[answerIndex];
 
@@ -169,8 +172,8 @@ void MainWindow::highlightAnswer(int answerIndex, bool isCorrect)
         }
 
         // Helyes válasz mindig zöld (ha hibáztunk)
-        if (!isCorrect && currentQuestionIndex < currentQuestions.size()) {
-            int correctIdx = currentQuestions[currentQuestionIndex].correctAnswer;
+        if (!isCorrect && currentQ != nullptr) {
+            int correctIdx = currentQ->correctAnswer;
             if (correctIdx >= 0 && correctIdx < answerButtons.size()) {
                 answerButtons[correctIdx]->setStyleSheet("QPushButton { "
                                                          "background-color: #27ae60; "
@@ -238,17 +241,19 @@ void MainWindow::handleAnswer(int answerIndex)
 
 void MainWindow::checkSelectedAnswer()
 {
-    if (selectedAnswerIndex < 0 || currentQuestionIndex >= currentQuestions.size()) {
+    // Lekérjük az aktuális kérdést a GameLogic-tól
+    const Question* currentQ = gameLogic.getCurrentQuestion();
+
+    if (selectedAnswerIndex < 0 || currentQ == nullptr) {
         return; // Nincs kiválasztva válasz
     }
 
-    Question& q = currentQuestions[currentQuestionIndex];
     // Válasz ellenőrzése
-    bool isCorrect = gameLogic.checkAnswer(q, selectedAnswerIndex);
+    bool isCorrect = gameLogic.checkAnswer(*currentQ, selectedAnswerIndex);
 
     if (isCorrect) {
         correctAnswers++;
-        totalPoints = gameLogic.calculateScore(totalPoints, q.points); // ITT A LÉNYEG
+        totalPoints = gameLogic.calculateScore(totalPoints, currentQ->points); // ITT A LÉNYEG
     }
 
     answerSelected = true;
@@ -281,11 +286,13 @@ void MainWindow::showFeedback(bool isCorrect)
                                          "font-weight: bold; "
                                          "}");
     } else {
+        const Question* currentQ = gameLogic.getCurrentQuestion();
+
         QString correctAns = "";
-        if (currentQuestionIndex < currentQuestions.size()) {
-            int idx = currentQuestions[currentQuestionIndex].correctAnswer;
-            if (idx >= 0 && idx < currentQuestions[currentQuestionIndex].answers.size()) {
-                correctAns = currentQuestions[currentQuestionIndex].answers[idx];
+        if (currentQ != nullptr) {
+            int idx = currentQ->correctAnswer;
+            if (idx >= 0 && idx < currentQ->answers.size()) {
+                correctAns = currentQ->answers[idx];
             }
         }
 
@@ -314,24 +321,32 @@ void MainWindow::enableNextQuestion()
 void MainWindow::onHungarianSelected()
 {
     selectedLanguage = Language::Hungarian;
+    gameLogic.setLanguage(Language::Hungarian);
+    gameLogic.loadLanguageData();
     showCategoryPage();
 }
 
 void MainWindow::onEnglishSelected()
 {
     selectedLanguage = Language::English;
+    gameLogic.setLanguage(Language::English);
+    gameLogic.loadLanguageData();
     showCategoryPage();
 }
 
 void MainWindow::onGermanSelected()
 {
     selectedLanguage = Language::German;
+    gameLogic.setLanguage(Language::German);
+    gameLogic.loadLanguageData();
     showCategoryPage();
 }
 
 void MainWindow::onRussianSelected()
 {
     selectedLanguage = Language::Russian;
+    gameLogic.setLanguage(Language::Russian);
+    gameLogic.loadLanguageData();
     showCategoryPage();
 }
 
@@ -443,16 +458,15 @@ void MainWindow::handleDifficultySelection(QPushButton *button, Difficulty diffi
 void MainWindow::onStartQuiz()
 {
     // Kérdések betöltése backend-ből a kiválasztott beállításokkal
-    loadQuestionsFromBackend();
+    gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
 
-    if (currentQuestions.isEmpty()) {
+    if (gameLogic.getTotalQuestions() == 0) {
         QMessageBox::information(this,
                                  "Nincs kérdés",
                                  "Ehhez a kombinációhoz még nincsenek kérdések az adatbázisban.");
         return;
     }
 
-    currentQuestionIndex = 0;
     correctAnswers = 0;
     totalPoints = 0;
     answerSelected = false;
@@ -491,7 +505,7 @@ void MainWindow::onNextQuestion()
 
     // Ha már ellenőrizve van, ugrunk a következő kérdésre
     if (answerSelected) {
-        currentQuestionIndex++;
+        gameLogic.nextQuestion();
         displayQuestion();
     }
 }
@@ -619,13 +633,8 @@ void MainWindow::setupConnections()
     connect(ui->logoutButton, &QPushButton::clicked, this, &MainWindow::onLogoutClicked);
 }
 
-void MainWindow::createAnswerButtons()
+void MainWindow::createAnswerButtons(const Question& q)
 {
-    if (currentQuestionIndex >= currentQuestions.size()) {
-        return;
-    }
-
-    Question &q = currentQuestions[currentQuestionIndex];
     QVBoxLayout *layout = qobject_cast<QVBoxLayout *>(ui->answersWidget->layout());
 
     if (!layout) {
@@ -671,8 +680,12 @@ void MainWindow::clearAnswerButtons()
 
 void MainWindow::updateQuestionCounter()
 {
+    int currentIdx = gameLogic.getCurrentQuestionIndex();
+    int totalCount = gameLogic.getTotalQuestions();
+
+
     QString counterText
-        = QString("Kérdés %1/%2").arg(currentQuestionIndex + 1).arg(currentQuestions.size());
+        = QString("Kérdés %1/%2").arg(currentIdx + 1).arg(totalCount);
     ui->questionNumberLabel->setText(counterText);
 }
 
@@ -819,18 +832,14 @@ void MainWindow::loadQuestionsFromBackend()
     // Bányai Bence: getRandomQuestion implementálva
     // TODO: KOSZTEL TAMÁS - loadLanguageData() implementálása
     // TODO: LUKÁCS VIKTÓRIA - loadQuestions() MySQL-ből
-    currentQuestions.clear();
 
-    for (int i = 0; i < 10; i++) {
-        Question q = gameLogic.getRandomQuestion(selectedLanguage, selectedCategory, selectedDifficulty);
+    gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
 
-        if (q.id != -1) {
-            currentQuestions.append(q);
-        }
-    }
-
-    qDebug() << "Backend hívás: loadQuestions(" << (int) selectedLanguage << ", "
-             << (int) selectedCategory << ", " << (int) selectedDifficulty << ")";
+    qDebug() << "Backend: loadQuestionsFromBackend() befejezve."
+             << " Paraméterek: Lang=" << (int)selectedLanguage
+             << ", Cat=" << (int)selectedCategory
+             << ", Diff=" << (int)selectedDifficulty
+             << ". Betöltött kérdések: " << gameLogic.getTotalQuestions();
 
 }
 
@@ -848,7 +857,7 @@ void MainWindow::updateStatisticsInBackend()
     // TODO: LUKÁCS VIKTÓRIA - saveUserScore() MySQL-be
 
     qDebug() << "Backend hívás: updateStatistics(" << correctAnswers << "/"
-             << currentQuestions.size() << ", points: " << totalPoints << ")";
+             << gameLogic.getTotalQuestions() << ", points: " << totalPoints << ")";
 }
 
 void MainWindow::loadStatisticsFromBackend()
@@ -875,19 +884,13 @@ void MainWindow::loadStatisticsFromBackend()
 
 void MainWindow::loadDemoQuestions()
 {
-    currentQuestions.clear();
+    gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
 
-    for (int i = 0; i < 10; i++) {
-        Question q = gameLogic.getRandomQuestion(selectedLanguage, selectedCategory, selectedDifficulty);
-
-        // Csak érvényes kérdést adunk hozzá
-        if (q.id != -1) {
-            currentQuestions.append(q);
-        }
-    }
-
-    qDebug() << "Backend hívás: loadQuestions(" << (int) selectedLanguage << ", "
-             << (int) selectedCategory << ", " << (int) selectedDifficulty << ")";
+    qDebug() << "Demo Questions loaded."
+             << " Paraméterek: Lang=" << (int)selectedLanguage
+             << ", Cat=" << (int)selectedCategory
+             << ", Diff=" << (int)selectedDifficulty
+             << ". Betöltött kérdések: " << gameLogic.getTotalQuestions();
 }
 
 void MainWindow::updateStatistics()
@@ -897,9 +900,9 @@ void MainWindow::updateStatistics()
     qDebug() << "updateStatistics() called";
 }
 
-void MainWindow::filterQuestions()
-{
-    // TODO: KOSZTEL TAMÁS - később implementálja
-    // Kérdések szűrése nyelv, kategória, nehézség alapján
-    qDebug() << "filterQuestions() called";
-}
+// void MainWindow::filterQuestions()
+// {
+//    // TODO: KOSZTEL TAMÁS - később implementálja
+//    // Kérdések szűrése nyelv, kategória, nehézség alapján
+//    qDebug() << "filterQuestions() called";
+//}
