@@ -829,7 +829,7 @@ void MainWindow::loadQuestionsFromBackend()
         }
     }
 
-    qDebug() << "Backend hívás: loadQuestions(" << (int) selectedLanguage << ", "
+    qDebug() << "Backend hivas: loadQuestions(" << (int) selectedLanguage << ", "
              << (int) selectedCategory << ", " << (int) selectedDifficulty << ")";
 
 }
@@ -839,7 +839,7 @@ void MainWindow::sendAnswerToBackend(int answerIndex)
     // Bányai Bence: A logikai ellenőrzés már megtörtént a GameLogic-ban.
     // TODO: Később itt kell majd elküldeni az adatot az adatbázisnak.
 
-    qDebug() << "Backend hívás: checkAnswer(" << answerIndex << ")";
+    qDebug() << "Backend hivas: checkAnswer(" << answerIndex << ")";
 }
 
 void MainWindow::updateStatisticsInBackend()
@@ -847,7 +847,7 @@ void MainWindow::updateStatisticsInBackend()
     // TODO: NAGY ATTILA - updateStatistics() implementálása
     // TODO: LUKÁCS VIKTÓRIA - saveUserScore() MySQL-be
 
-    qDebug() << "Backend hívás: updateStatistics(" << correctAnswers << "/"
+    qDebug() << "Backend hivas: updateStatistics(" << correctAnswers << "/"
              << currentQuestions.size() << ", points: " << totalPoints << ")";
 }
 
@@ -856,7 +856,7 @@ void MainWindow::loadStatisticsFromBackend()
     // TODO: NAGY ATTILA - getPlayerStats() implementálása
     // TODO: LUKÁCS VIKTÓRIA - loadHighScores() MySQL-ből
 
-    qDebug() << "Backend hívás: loadStatistics()";
+    qDebug() << "Backend hivas: loadStatistics()";
 
     // Ideiglenes demo statisztikák
     ui->completedLabel->setText("12");
@@ -867,27 +867,6 @@ void MainWindow::loadStatisticsFromBackend()
     ui->langStats2->setText("42 szó | 92%");
     ui->langStats3->setText("18 szó | 78%");
     ui->langStats4->setText("12 szó | 70%");
-}
-
-// ============================================================================
-// DEMO KÉRDÉSEK - Ezt később törölni kell amikor az adatbázis kész van
-// ============================================================================
-
-void MainWindow::loadDemoQuestions()
-{
-    currentQuestions.clear();
-
-    for (int i = 0; i < 10; i++) {
-        Question q = gameLogic.getRandomQuestion(selectedLanguage, selectedCategory, selectedDifficulty);
-
-        // Csak érvényes kérdést adunk hozzá
-        if (q.id != -1) {
-            currentQuestions.append(q);
-        }
-    }
-
-    qDebug() << "Backend hívás: loadQuestions(" << (int) selectedLanguage << ", "
-             << (int) selectedCategory << ", " << (int) selectedDifficulty << ")";
 }
 
 void MainWindow::updateStatistics()
