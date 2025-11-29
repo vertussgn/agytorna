@@ -1,53 +1,21 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QPushButton>
-#include <QVector>
-#include <QString>
 #include <QLabel>
-#include <QTimer>
+#include <QMainWindow>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QString>
+#include <QTimer>
+#include <QVector>
+#include "gamelogic.h"
+#include "gametypes.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+namespace Ui {
+class MainWindow;
+}
 QT_END_NAMESPACE
-
-// Nyelv enum - 4 nyelv a specifikáció szerint
-enum class Language {
-    Hungarian,
-    English,
-    German,
-    Russian
-};
-
-// Kategória enum
-enum class Category {
-    Vocabulary,
-    Grammar,
-    Sentences,
-    Listening
-};
-
-// Nehézségi szint enum
-enum class Difficulty {
-    Beginner,
-    Intermediate,
-    Advanced
-};
-
-// Kérdés struktúra - később az adatbázisból jön
-struct Question {
-    int id;
-    QString questionText;
-    QString word;
-    QVector<QString> answers;
-    int correctAnswer;
-    int points;
-    Language language;
-    Category category;
-    Difficulty difficulty;
-};
 
 class MainWindow : public QMainWindow
 {
@@ -57,27 +25,23 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    // ========================================================================
-    // BARTA CSONGOR - Qt GUI felület kezelés
-    // ========================================================================
-    void showMainMenu();           // Főmenü és nyelvválasztás megjelenítése
-    void displayQuestion();        // Kérdés és válaszok kirajzolása
-    void updateUIState();          // Válasz után vizuális visszajelzés
+    // Oldalak megjelenítése
+    void showMainMenu();
+    void showLanguageSelectOnly();          // ÚJ!
+    void showProfilePage();                 // ÚJ!
+    void showStatisticsPage();
+    void showCategoryPage();
 
-    // ========================================================================
-    // SZTÁNYI GYÖRGY - Interaktív elemek (Qt-ben)
-    // ========================================================================
-    void showResults();            // Eredménylap és pontszám kijelzése
-    void restartGame();            // Új játékmenet indítása
-    void highlightAnswer(int answerIndex, bool isCorrect);  // Helyes/hibás válasz kiemelése
-
-    // ========================================================================
-    // HRABINA GERGŐ - Kérdések és válaszok interaktív kezelése
-    // ========================================================================
-    void handleAnswer(int answerIndex);     // Válasz kijelölése
-    void checkSelectedAnswer();             // Kijelölt válasz ellenőrzése
-    void showFeedback(bool isCorrect);      // Helyes/hibás válasz vizuális visszajelzése
-    void enableNextQuestion();              // Következő kérdés aktiválása
+    // Kvíz funkciók
+    void displayQuestion();
+    void updateUIState();
+    void showResults();
+    void restartGame();
+    void highlightAnswer(int answerIndex, bool isCorrect);
+    void handleAnswer(int answerIndex);
+    void checkSelectedAnswer();
+    void showFeedback(bool isCorrect);
+    void enableNextQuestion();
 
 private slots:
     // Nyelvválasztó gombok
@@ -112,21 +76,17 @@ private slots:
     void onStatsClicked();
     void onProfileClicked();
     void onLogoutClicked();
-
-    // Statisztika
     void onBackFromStatsClicked();
 
 private:
     Ui::MainWindow *ui;
+    GameLogic gameLogic;
 
     // Játék állapot változók
-    QVector<Question> currentQuestions;  // Aktuális kvíz kérdései
-    QVector<Question> questions;         // Összes kérdés (később adatbázisból)
-    int currentQuestionIndex;
     int correctAnswers;
     int totalPoints;
     bool answerSelected;
-    int selectedAnswerIndex;             // Kiválasztott válasz indexe (ÚJ)
+    int selectedAnswerIndex;
 
     // Kiválasztott beállítások
     Language selectedLanguage;
@@ -138,26 +98,21 @@ private:
     int totalWordsLearned;
 
     // UI elemek
-    QVector<QPushButton*> answerButtons;
+    QVector<QPushButton *> answerButtons;
+    QPushButton *selectedCategoryButton;
+    QPushButton *selectedDifficultyButton;
 
-    // Kijelölt gombok tárolása
-    QPushButton* selectedCategoryButton;
-    QPushButton* selectedDifficultyButton;
-
-    // ========================================================================
-    // Frontend belső segédfüggvények
-    // ========================================================================
+    // Segédfüggvények
     void setupConnections();
-    void createAnswerButtons();
+    void createAnswerButtons(const Question &q);
     void clearAnswerButtons();
     void updateQuestionCounter();
     void updateCurrentScore();
-    void showCategoryPage();
-    void showStatisticsPage();
+    void setMainMenuVisibility(bool showStats, bool showLanguages);  // ÚJ!
 
     // Kijelölés kezelő függvények
-    void handleCategorySelection(QPushButton* button, Category category);
-    void handleDifficultySelection(QPushButton* button, Difficulty difficulty);
+    void handleCategorySelection(QPushButton *button, Category category);
+    void handleDifficultySelection(QPushButton *button, Difficulty difficulty);
 
     // UI szövegek
     QString getLanguageName(Language lang);
@@ -168,20 +123,13 @@ private:
     QString getDifficultyIcon(Difficulty diff);
     QString getMotivationalMessage(double accuracy);
 
-    // ========================================================================
-    // BACKEND INTERFACE - Ezeket később a backend implementálja
-    // ========================================================================
-    void loadQuestionsFromBackend();           // Backend: getRandomQuestion()
-    void sendAnswerToBackend(int answerIndex); // Backend: checkAnswer()
-    void updateStatisticsInBackend();          // Backend: updateStatistics()
-    void loadStatisticsFromBackend();          // Backend: getPlayerStats()
-
-    // Ideiglenes függvények demo kérdésekhez (később törlendő)
+    // Backend interface
+    void loadQuestionsFromBackend();
+    void sendAnswerToBackend(int answerIndex);
+    void updateStatisticsInBackend();
+    void loadStatisticsFromBackend();
     void loadDemoQuestions();
-
-    // Statisztika kezelés (placeholder)
     void updateStatistics();
-    void filterQuestions();
 };
 
 #endif // MAINWINDOW_H

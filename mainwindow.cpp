@@ -1,13 +1,13 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include <QVBoxLayout>
-#include <QMessageBox>
 #include <QDebug>
+#include <QMessageBox>
+#include <QVBoxLayout>
+#include "databasemanager.h"
+#include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , currentQuestionIndex(0)
     , correctAnswers(0)
     , totalPoints(0)
     , answerSelected(false)
@@ -22,11 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setupConnections();
-
-    // Kezdő állapot: főmenü
     showMainMenu();
-
-    // Demo statisztikák betöltése (később adatbázisból)
     loadStatisticsFromBackend();
 }
 
@@ -36,39 +32,92 @@ MainWindow::~MainWindow()
 }
 
 // ============================================================================
-// BARTA CSONGOR - Qt GUI felület kezelés
+// OLDALAK MEGJELENÍTÉSE (ÚJ SIDEBAR FUNKCIÓKKAL)
 // ============================================================================
 
 void MainWindow::showMainMenu()
 {
+    setMainMenuVisibility(true, false);  // ← FALSE = nyelvválasztás elrejtve!
     ui->stackedWidget->setCurrentWidget(ui->mainMenuPage);
     loadStatisticsFromBackend();
 }
 
+void MainWindow::showLanguageSelectOnly()
+{
+    setMainMenuVisibility(false, true);
+    ui->stackedWidget->setCurrentWidget(ui->mainMenuPage);
+}
+
+void MainWindow::setMainMenuVisibility(bool showStats, bool showLanguages)
+{
+    ui->statsCard->setVisible(showStats);
+    ui->statsCard_2->setVisible(showStats);
+    ui->statsCard_3->setVisible(showStats);
+
+    ui->sectionLabel->setVisible(showLanguages);
+    ui->hungarianButton->setVisible(showLanguages);
+    ui->englishButton->setVisible(showLanguages);
+    ui->germanButton->setVisible(showLanguages);
+    ui->russianButton->setVisible(showLanguages);
+
+    if (showStats && showLanguages) {
+        ui->welcomeLabel->setText("Üdvözöl az Agytorna! 🧠");
+        ui->subtitleLabel->setText("Válassz nyelvet és kezdj el tanulni!");
+        ui->subtitleLabel->setVisible(true);
+    } else if (showLanguages && !showStats) {
+        ui->welcomeLabel->setText("Nyelvválasztás 🌍");
+        ui->subtitleLabel->setText("Melyik nyelvet szeretnéd gyakorolni?");
+        ui->subtitleLabel->setVisible(true);
+    }
+}
+
+void MainWindow::showProfilePage()
+{
+    QMessageBox::information(this, "Profil",
+                             "👤 Profil\n\n"
+                             "Felhasználónév: Tanuló\n"
+                             "Regisztráció: 2024.01.01\n"
+                             "Szint: Haladó\n\n"
+                             "Ez a funkció hamarosan teljes lesz!");
+}
+
+void MainWindow::showStatisticsPage()
+{
+    loadStatisticsFromBackend();
+    ui->stackedWidget->setCurrentWidget(ui->statisticsPage);
+}
+
+void MainWindow::showCategoryPage()
+{
+    QString langText = QString("Kiválasztott nyelv: %1 %2")
+                           .arg(getLanguageName(selectedLanguage))
+                           .arg(getLanguageFlag(selectedLanguage));
+    ui->selectedLanguageLabel->setText(langText);
+    ui->stackedWidget->setCurrentWidget(ui->categoryPage);
+}
+
+// ============================================================================
+// KVÍZ MEGJELENÍTÉS
+// ============================================================================
+
 void MainWindow::displayQuestion()
 {
-    if (currentQuestionIndex >= currentQuestions.size()) {
+    const Question *currentQ = gameLogic.getCurrentQuestion();
+
+    if (currentQ == nullptr) {
         showResults();
         return;
     }
 
-    Question& q = currentQuestions[currentQuestionIndex];
+    ui->questionLabel->setText(currentQ->questionText);
+    ui->wordLabel->setText(currentQ->word);
 
-    // Kérdés szöveg megjelenítése
-    ui->questionLabel->setText(q.questionText);
-
-    // Tanítandó szó/mondat megjelenítése
-    ui->wordLabel->setText(q.word);
-
-    // Válaszgombok létrehozása
     clearAnswerButtons();
-    createAnswerButtons();
+    createAnswerButtons(*currentQ);
 
-    // Visszajelzés törlése
     ui->feedbackLabel->clear();
     ui->feedbackLabel->setStyleSheet("");
 
-    // UI állapot frissítése
     answerSelected = false;
     selectedAnswerIndex = -1;
     ui->nextQuestionButton->setEnabled(false);
@@ -80,54 +129,44 @@ void MainWindow::displayQuestion()
 
 void MainWindow::updateUIState()
 {
-    // Válasz gombok letiltása válasz után
-    for (QPushButton* btn : answerButtons) {
+    for (QPushButton *btn : answerButtons) {
         btn->setEnabled(!answerSelected);
     }
-
-    // Következő gomb engedélyezése
     ui->nextQuestionButton->setEnabled(answerSelected);
 }
 
 // ============================================================================
-// SZTÁNYI GYÖRGY - Interaktív elemek
+// EREDMÉNYEK
 // ============================================================================
 
 void MainWindow::showResults()
 {
     ui->stackedWidget->setCurrentWidget(ui->resultsPage);
 
-    // Eredmények számítása és megjelenítése
-    QString scoreText = QString("%1 / %2")
-                            .arg(correctAnswers)
-                            .arg(currentQuestions.size());
+    int quizSize = gameLogic.getTotalQuestions();
+
+    QString scoreText = QString("%1 / %2").arg(correctAnswers).arg(quizSize);
     ui->resultLabel->setText(scoreText);
 
-    double percentage = (currentQuestions.size() > 0) ?
-                            (correctAnswers * 100.0 / currentQuestions.size()) : 0.0;
+    double percentage = (quizSize > 0) ? (correctAnswers * 100.0 / quizSize) : 0.0;
     ui->percentageLabel->setText(QString("%1%").arg(QString::number(percentage, 'f', 0)));
 
     ui->pointsLabel->setText(QString("Pontszám: %1").arg(totalPoints));
-
-    // Motivációs üzenet
     ui->messageLabel->setText(getMotivationalMessage(percentage));
 
-    // Statisztika mentése backend-be
     updateStatisticsInBackend();
 }
 
 void MainWindow::restartGame()
 {
-    currentQuestionIndex = 0;
     correctAnswers = 0;
     totalPoints = 0;
     answerSelected = false;
     selectedAnswerIndex = -1;
 
-    // Új kérdések betöltése backend-ből
-    loadQuestionsFromBackend();
+    gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
 
-    if (currentQuestions.isEmpty()) {
+    if (gameLogic.getTotalQuestions() == 0) {
         QMessageBox::information(this, "Nincs kérdés",
                                  "Ehhez a kombinációhoz még nincsenek kérdések az adatbázisban.");
         return;
@@ -139,141 +178,74 @@ void MainWindow::restartGame()
 
 void MainWindow::highlightAnswer(int answerIndex, bool isCorrect)
 {
+    const Question *currentQ = gameLogic.getCurrentQuestion();
+
     if (answerIndex >= 0 && answerIndex < answerButtons.size()) {
-        QPushButton* btn = answerButtons[answerIndex];
+        QPushButton *btn = answerButtons[answerIndex];
 
         if (isCorrect) {
-            // Zöld kiemelés helyes válaszhoz
-            btn->setStyleSheet(
-                "QPushButton { "
-                "background-color: #27ae60; "
-                "color: white; "
-                "border: 3px solid #1e8449; "
-                "border-radius: 10px; "
-                "padding: 15px; "
-                "font-size: 16px; "
-                "font-weight: bold; "
-                "text-align: left; "
-                "}"
-                );
+            btn->setStyleSheet("QPushButton { background-color: #27ae60; color: white; "
+                               "border: 3px solid #1e8449; border-radius: 10px; padding: 15px; "
+                               "font-size: 16px; font-weight: bold; text-align: left; }");
         } else {
-            // Piros kiemelés helytelen válaszhoz
-            btn->setStyleSheet(
-                "QPushButton { "
-                "background-color: #e74c3c; "
-                "color: white; "
-                "border: 3px solid #c0392b; "
-                "border-radius: 10px; "
-                "padding: 15px; "
-                "font-size: 16px; "
-                "font-weight: bold; "
-                "text-align: left; "
-                "}"
-                );
+            btn->setStyleSheet("QPushButton { background-color: #e74c3c; color: white; "
+                               "border: 3px solid #c0392b; border-radius: 10px; padding: 15px; "
+                               "font-size: 16px; font-weight: bold; text-align: left; }");
         }
 
-        // Helyes válasz mindig zöld (ha hibáztunk)
-        if (!isCorrect && currentQuestionIndex < currentQuestions.size()) {
-            int correctIdx = currentQuestions[currentQuestionIndex].correctAnswer;
+        if (!isCorrect && currentQ != nullptr) {
+            int correctIdx = currentQ->correctAnswer;
             if (correctIdx >= 0 && correctIdx < answerButtons.size()) {
                 answerButtons[correctIdx]->setStyleSheet(
-                    "QPushButton { "
-                    "background-color: #27ae60; "
-                    "color: white; "
-                    "border: 3px solid #1e8449; "
-                    "border-radius: 10px; "
-                    "padding: 15px; "
-                    "font-size: 16px; "
-                    "font-weight: bold; "
-                    "text-align: left; "
-                    "}"
-                    );
+                    "QPushButton { background-color: #27ae60; color: white; "
+                    "border: 3px solid #1e8449; border-radius: 10px; padding: 15px; "
+                    "font-size: 16px; font-weight: bold; text-align: left; }");
             }
         }
     }
 }
 
 // ============================================================================
-// HRABINA GERGŐ - Kérdések és válaszok kezelése
+// VÁLASZKEZELÉS
 // ============================================================================
 
 void MainWindow::handleAnswer(int answerIndex)
 {
-    if (answerSelected) {
-        return; // Ha már ellenőrizve van, ne csináljon semmit
-    }
+    if (answerSelected) return;
 
-    // Előző kijelölés törlése
     if (selectedAnswerIndex >= 0 && selectedAnswerIndex < answerButtons.size()) {
         answerButtons[selectedAnswerIndex]->setStyleSheet(
-            "QPushButton { "
-            "background-color: white; "
-            "color: #000000; "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 10px; "
-            "padding: 15px; "
-            "font-size: 16px; "
-            "text-align: left; "
-            "} "
-            "QPushButton:hover { "
-            "background-color: #ecf0f1; "
-            "border-color: #000000; "
-            "}"
-            );
+            "QPushButton { background-color: white; color: #000000; "
+            "border: 2px solid #bdc3c7; border-radius: 10px; padding: 15px; "
+            "font-size: 16px; text-align: left; }");
     }
 
-    // Új válasz kijelölése (KÉK kiemelés)
     selectedAnswerIndex = answerIndex;
     if (answerIndex >= 0 && answerIndex < answerButtons.size()) {
         answerButtons[answerIndex]->setStyleSheet(
-            "QPushButton { "
-            "background-color: #3498db; "
-            "color: white; "
-            "border: 3px solid #2980b9; "
-            "border-radius: 10px; "
-            "padding: 15px; "
-            "font-size: 16px; "
-            "text-align: left; "
-            "font-weight: bold; "
-            "} "
-            "QPushButton:hover { "
-            "background-color: #2980b9; "
-            "}"
-            );
-
-        // Következő gomb engedélyezése
+            "QPushButton { background-color: #3498db; color: white; "
+            "border: 3px solid #2980b9; border-radius: 10px; padding: 15px; "
+            "font-size: 16px; text-align: left; font-weight: bold; }");
         ui->nextQuestionButton->setEnabled(true);
     }
 }
 
 void MainWindow::checkSelectedAnswer()
 {
-    if (selectedAnswerIndex < 0 || currentQuestionIndex >= currentQuestions.size()) {
-        return; // Nincs kiválasztva válasz
-    }
+    const Question *currentQ = gameLogic.getCurrentQuestion();
+    if (selectedAnswerIndex < 0 || currentQ == nullptr) return;
 
-    Question& q = currentQuestions[currentQuestionIndex];
-
-    // Válasz ellenőrzése
-    bool isCorrect = (selectedAnswerIndex == q.correctAnswer);
+    bool isCorrect = gameLogic.checkAnswer(selectedAnswerIndex);
 
     if (isCorrect) {
         correctAnswers++;
-        totalPoints += q.points;
+        totalPoints = gameLogic.calculateScore(totalPoints, currentQ->points);
     }
 
     answerSelected = true;
-
-    // Backend-be küldés
     sendAnswerToBackend(selectedAnswerIndex);
-
-    // Válasz vizuális kiemelése (ZÖLD vagy PIROS)
     highlightAnswer(selectedAnswerIndex, isCorrect);
-
-    // Visszajelzés megjelenítése
     showFeedback(isCorrect);
-
-    // UI állapot frissítése
     updateUIState();
     updateCurrentScore();
 }
@@ -282,38 +254,22 @@ void MainWindow::showFeedback(bool isCorrect)
 {
     if (isCorrect) {
         ui->feedbackLabel->setText("✓ Helyes válasz! Nagyszerű! 🎉");
-        ui->feedbackLabel->setStyleSheet(
-            "QLabel { "
-            "background-color: #d5f4e6; "
-            "color: #0f5132; "
-            "border: 2px solid #27ae60; "
-            "border-radius: 12px; "
-            "padding: 15px; "
-            "font-size: 18px; "
-            "font-weight: bold; "
-            "}"
-            );
+        ui->feedbackLabel->setStyleSheet("QLabel { background-color: #d5f4e6; "
+                                         "color: #0f5132; border: 2px solid #27ae60; border-radius: 12px; "
+                                         "padding: 15px; font-size: 18px; font-weight: bold; }");
     } else {
+        const Question *currentQ = gameLogic.getCurrentQuestion();
         QString correctAns = "";
-        if (currentQuestionIndex < currentQuestions.size()) {
-            int idx = currentQuestions[currentQuestionIndex].correctAnswer;
-            if (idx >= 0 && idx < currentQuestions[currentQuestionIndex].answers.size()) {
-                correctAns = currentQuestions[currentQuestionIndex].answers[idx];
+        if (currentQ != nullptr) {
+            int idx = currentQ->correctAnswer;
+            if (idx >= 0 && idx < currentQ->answers.size()) {
+                correctAns = currentQ->answers[idx];
             }
         }
-
         ui->feedbackLabel->setText(QString("✗ Helytelen! A helyes válasz: %1").arg(correctAns));
-        ui->feedbackLabel->setStyleSheet(
-            "QLabel { "
-            "background-color: #f8d7da; "
-            "color: #721c24; "
-            "border: 2px solid #e74c3c; "
-            "border-radius: 12px; "
-            "padding: 15px; "
-            "font-size: 18px; "
-            "font-weight: bold; "
-            "}"
-            );
+        ui->feedbackLabel->setStyleSheet("QLabel { background-color: #f8d7da; "
+                                         "color: #721c24; border: 2px solid #e74c3c; border-radius: 12px; "
+                                         "padding: 15px; font-size: 18px; font-weight: bold; }");
     }
 }
 
@@ -323,35 +279,43 @@ void MainWindow::enableNextQuestion()
 }
 
 // ============================================================================
-// SLOTS - Nyelvválasztás
+// NYELVVÁLASZTÁS
 // ============================================================================
 
 void MainWindow::onHungarianSelected()
 {
     selectedLanguage = Language::Hungarian;
+    gameLogic.setLanguage(Language::Hungarian);
+    gameLogic.loadLanguageData();
     showCategoryPage();
 }
 
 void MainWindow::onEnglishSelected()
 {
     selectedLanguage = Language::English;
+    gameLogic.setLanguage(Language::English);
+    gameLogic.loadLanguageData();
     showCategoryPage();
 }
 
 void MainWindow::onGermanSelected()
 {
     selectedLanguage = Language::German;
+    gameLogic.setLanguage(Language::German);
+    gameLogic.loadLanguageData();
     showCategoryPage();
 }
 
 void MainWindow::onRussianSelected()
 {
     selectedLanguage = Language::Russian;
+    gameLogic.setLanguage(Language::Russian);
+    gameLogic.loadLanguageData();
     showCategoryPage();
 }
 
 // ============================================================================
-// SLOTS - Kategória választás (KIJELÖLÉS FUNKCIÓVAL)
+// KATEGÓRIA ÉS NEHÉZSÉG
 // ============================================================================
 
 void MainWindow::onVocabularySelected()
@@ -374,40 +338,24 @@ void MainWindow::onListeningSelected()
     handleCategorySelection(ui->listeningButton, Category::Listening);
 }
 
-void MainWindow::handleCategorySelection(QPushButton* button, Category category)
+void MainWindow::handleCategorySelection(QPushButton *button, Category category)
 {
-    // Ha ugyanarra kattintunk újra - visszavonjuk
     if (selectedCategoryButton == button) {
         button->setStyleSheet("background-color: rgb(0, 0, 0);");
         selectedCategoryButton = nullptr;
         return;
     }
 
-    // Előző gomb visszaállítása
     if (selectedCategoryButton != nullptr) {
         selectedCategoryButton->setStyleSheet("background-color: rgb(0, 0, 0);");
     }
 
-    // Új gomb kijelölése (PIROS)
-    button->setStyleSheet(
-        "QPushButton { "
-        "background-color: rgb(231, 76, 60); "
-        "color: white; "
-        "border: 3px solid rgb(192, 57, 43); "
-        "border-radius: 10px; "
-        "} "
-        "QPushButton:hover { "
-        "background-color: rgb(192, 57, 43); "
-        "}"
-        );
+    button->setStyleSheet("QPushButton { background-color: rgb(231, 76, 60); "
+                          "color: white; border: 3px solid rgb(192, 57, 43); border-radius: 10px; }");
 
     selectedCategoryButton = button;
     selectedCategory = category;
 }
-
-// ============================================================================
-// SLOTS - Nehézségi szint választás (KIJELÖLÉS FUNKCIÓVAL)
-// ============================================================================
 
 void MainWindow::onBeginnerSelected()
 {
@@ -424,59 +372,44 @@ void MainWindow::onAdvancedSelected()
     handleDifficultySelection(ui->advancedButton, Difficulty::Advanced);
 }
 
-void MainWindow::handleDifficultySelection(QPushButton* button, Difficulty difficulty)
+void MainWindow::handleDifficultySelection(QPushButton *button, Difficulty difficulty)
 {
-    // Ha ugyanarra kattintunk újra - visszavonjuk
     if (selectedDifficultyButton == button) {
         button->setStyleSheet("background-color: rgb(0, 0, 0);");
         selectedDifficultyButton = nullptr;
         return;
     }
 
-    // Előző gomb visszaállítása
     if (selectedDifficultyButton != nullptr) {
         selectedDifficultyButton->setStyleSheet("background-color: rgb(0, 0, 0);");
     }
 
-    // Új gomb kijelölése (NARANCSSÁRGA)
-    button->setStyleSheet(
-        "QPushButton { "
-        "background-color: rgb(255, 165, 0); "
-        "color: white; "
-        "border: 3px solid rgb(255, 140, 0); "
-        "border-radius: 10px; "
-        "} "
-        "QPushButton:hover { "
-        "background-color: rgb(255, 140, 0); "
-        "}"
-        );
+    button->setStyleSheet("QPushButton { background-color: rgb(255, 165, 0); "
+                          "color: white; border: 3px solid rgb(255, 140, 0); border-radius: 10px; }");
 
     selectedDifficultyButton = button;
     selectedDifficulty = difficulty;
 }
 
 // ============================================================================
-// SLOTS - Navigáció
+// NAVIGÁCIÓ
 // ============================================================================
 
 void MainWindow::onStartQuiz()
 {
-    // Kérdések betöltése backend-ből a kiválasztott beállításokkal
-    loadQuestionsFromBackend();
+    gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
 
-    if (currentQuestions.isEmpty()) {
+    if (gameLogic.getTotalQuestions() == 0) {
         QMessageBox::information(this, "Nincs kérdés",
                                  "Ehhez a kombinációhoz még nincsenek kérdések az adatbázisban.");
         return;
     }
 
-    currentQuestionIndex = 0;
     correctAnswers = 0;
     totalPoints = 0;
     answerSelected = false;
     selectedAnswerIndex = -1;
 
-    // Kategória és nehézség megjelenítése a kvíz oldalon
     QString categoryInfo = QString("%1 %2 | %3 %4")
                                .arg(getCategoryIcon(selectedCategory))
                                .arg(getCategoryName(selectedCategory))
@@ -500,28 +433,23 @@ void MainWindow::onBackToMenu()
 
 void MainWindow::onNextQuestion()
 {
-    // Ha még nem ellenőriztük a választ, először ellenőrizzük
     if (!answerSelected && selectedAnswerIndex >= 0) {
         checkSelectedAnswer();
         ui->nextQuestionButton->setText("Következő ➡");
         return;
     }
 
-    // Ha már ellenőrizve van, ugrunk a következő kérdésre
     if (answerSelected) {
-        currentQuestionIndex++;
+        gameLogic.nextQuestion();
         displayQuestion();
     }
 }
 
 void MainWindow::onQuitQuiz()
 {
-    QMessageBox::StandardButton reply = QMessageBox::question(
-        this,
-        "Kilépés",
-        "Biztosan abbahagyod a kvízt? Az eredmények nem lesznek mentve.",
-        QMessageBox::Yes | QMessageBox::No
-        );
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Kilépés",
+                                                              "Biztosan abbahagyod a kvízt? Az eredmények nem lesznek mentve.",
+                                                              QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
         showMainMenu();
@@ -540,16 +468,14 @@ void MainWindow::onNextLevel()
     } else if (selectedDifficulty == Difficulty::Intermediate) {
         selectedDifficulty = Difficulty::Advanced;
     } else {
-        QMessageBox::information(this, "Maximális szint",
-                                 "Már a legmagasabb szinten vagy! 🏆");
+        QMessageBox::information(this, "Maximális szint", "Már a legmagasabb szinten vagy! 🏆");
         return;
     }
-
     restartGame();
 }
 
 // ============================================================================
-// SLOTS - Sidebar navigáció
+// SIDEBAR (ÚJ FUNKCIÓK!)
 // ============================================================================
 
 void MainWindow::onHomeClicked()
@@ -559,7 +485,7 @@ void MainWindow::onHomeClicked()
 
 void MainWindow::onLanguagesClicked()
 {
-    showMainMenu();
+    showLanguageSelectOnly();
 }
 
 void MainWindow::onStatsClicked()
@@ -569,17 +495,14 @@ void MainWindow::onStatsClicked()
 
 void MainWindow::onProfileClicked()
 {
-    QMessageBox::information(this, "Profil", "Profil oldal hamarosan elérhető...");
+    showProfilePage();
 }
 
 void MainWindow::onLogoutClicked()
 {
-    QMessageBox::StandardButton reply = QMessageBox::question(
-        this,
-        "Kijelentkezés",
-        "Biztosan ki szeretnél jelentkezni?",
-        QMessageBox::Yes | QMessageBox::No
-        );
+    QMessageBox::StandardButton reply = QMessageBox::question(this, "Kijelentkezés",
+                                                              "Biztosan ki szeretnél jelentkezni?",
+                                                              QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
         close();
@@ -592,29 +515,25 @@ void MainWindow::onBackFromStatsClicked()
 }
 
 // ============================================================================
-// SEGÉD FÜGGVÉNYEK - UI kezelés
+// UI SEGÉDFÜGGVÉNYEK
 // ============================================================================
 
 void MainWindow::setupConnections()
 {
-    // Nyelvválasztó gombok
     connect(ui->hungarianButton, &QPushButton::clicked, this, &MainWindow::onHungarianSelected);
     connect(ui->englishButton, &QPushButton::clicked, this, &MainWindow::onEnglishSelected);
     connect(ui->germanButton, &QPushButton::clicked, this, &MainWindow::onGermanSelected);
     connect(ui->russianButton, &QPushButton::clicked, this, &MainWindow::onRussianSelected);
 
-    // Kategória gombok
     connect(ui->vocabularyButton, &QPushButton::clicked, this, &MainWindow::onVocabularySelected);
     connect(ui->grammarButton, &QPushButton::clicked, this, &MainWindow::onGrammarSelected);
     connect(ui->sentencesButton, &QPushButton::clicked, this, &MainWindow::onSentencesSelected);
     connect(ui->listeningButton, &QPushButton::clicked, this, &MainWindow::onListeningSelected);
 
-    // Nehézségi szint gombok
     connect(ui->beginnerButton, &QPushButton::clicked, this, &MainWindow::onBeginnerSelected);
     connect(ui->intermediateButton, &QPushButton::clicked, this, &MainWindow::onIntermediateSelected);
     connect(ui->advancedButton, &QPushButton::clicked, this, &MainWindow::onAdvancedSelected);
 
-    // Navigációs gombok
     connect(ui->startQuizButton, &QPushButton::clicked, this, &MainWindow::onStartQuiz);
     connect(ui->backFromCategoryButton, &QPushButton::clicked, this, &MainWindow::onBackFromCategory);
     connect(ui->backToMenuButton, &QPushButton::clicked, this, &MainWindow::onBackToMenu);
@@ -624,7 +543,6 @@ void MainWindow::setupConnections()
     connect(ui->nextLevelButton, &QPushButton::clicked, this, &MainWindow::onNextLevel);
     connect(ui->backFromStatsButton, &QPushButton::clicked, this, &MainWindow::onBackFromStatsClicked);
 
-    // Sidebar gombok
     connect(ui->homeButton, &QPushButton::clicked, this, &MainWindow::onHomeClicked);
     connect(ui->languagesButton, &QPushButton::clicked, this, &MainWindow::onLanguagesClicked);
     connect(ui->statsButton, &QPushButton::clicked, this, &MainWindow::onStatsClicked);
@@ -632,14 +550,9 @@ void MainWindow::setupConnections()
     connect(ui->logoutButton, &QPushButton::clicked, this, &MainWindow::onLogoutClicked);
 }
 
-void MainWindow::createAnswerButtons()
+void MainWindow::createAnswerButtons(const Question &q)
 {
-    if (currentQuestionIndex >= currentQuestions.size()) {
-        return;
-    }
-
-    Question& q = currentQuestions[currentQuestionIndex];
-    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->answersWidget->layout());
+    QVBoxLayout *layout = qobject_cast<QVBoxLayout *>(ui->answersWidget->layout());
 
     if (!layout) {
         layout = new QVBoxLayout(ui->answersWidget);
@@ -648,30 +561,16 @@ void MainWindow::createAnswerButtons()
     }
 
     for (int i = 0; i < q.answers.size(); i++) {
-        QPushButton* btn = new QPushButton(q.answers[i], ui->answersWidget);
+        QPushButton *btn = new QPushButton(q.answers[i], ui->answersWidget);
         btn->setMinimumHeight(60);
         btn->setMaximumHeight(60);
         btn->setCursor(Qt::PointingHandCursor);
-        btn->setStyleSheet(
-            "QPushButton { "
-            "background-color: white; "
-            "color: #000000; "
-            "border: 2px solid #bdc3c7; "
-            "border-radius: 10px; "
-            "padding: 15px; "
-            "font-size: 16px; "
-            "text-align: left; "
-            "} "
-            "QPushButton:hover { "
-            "background-color: #ecf0f1; "
-            "border-color: #000000; "
-            "color: #000000; "
-            "}"
-            );
+        btn->setStyleSheet("QPushButton { background-color: white; color: #000000; "
+                           "border: 2px solid #bdc3c7; border-radius: 10px; padding: 15px; "
+                           "font-size: 16px; text-align: left; } "
+                           "QPushButton:hover { background-color: #ecf0f1; border-color: #000000; }");
 
-        connect(btn, &QPushButton::clicked, [this, i]() {
-            handleAnswer(i);
-        });
+        connect(btn, &QPushButton::clicked, [this, i]() { handleAnswer(i); });
 
         layout->addWidget(btn);
         answerButtons.append(btn);
@@ -680,7 +579,7 @@ void MainWindow::createAnswerButtons()
 
 void MainWindow::clearAnswerButtons()
 {
-    for (QPushButton* btn : answerButtons) {
+    for (QPushButton *btn : answerButtons) {
         btn->deleteLater();
     }
     answerButtons.clear();
@@ -688,9 +587,9 @@ void MainWindow::clearAnswerButtons()
 
 void MainWindow::updateQuestionCounter()
 {
-    QString counterText = QString("Kérdés %1/%2")
-                              .arg(currentQuestionIndex + 1)
-                              .arg(currentQuestions.size());
+    int currentIdx = gameLogic.getCurrentQuestionIndex();
+    int totalCount = gameLogic.getTotalQuestions();
+    QString counterText = QString("Kérdés %1/%2").arg(currentIdx + 1).arg(totalCount);
     ui->questionNumberLabel->setText(counterText);
 }
 
@@ -699,24 +598,8 @@ void MainWindow::updateCurrentScore()
     ui->currentScoreLabel->setText(QString("Pontszám: %1").arg(totalPoints));
 }
 
-void MainWindow::showCategoryPage()
-{
-    QString langText = QString("Kiválasztott nyelv: %1 %2")
-                           .arg(getLanguageName(selectedLanguage))
-                           .arg(getLanguageFlag(selectedLanguage));
-    ui->selectedLanguageLabel->setText(langText);
-
-    ui->stackedWidget->setCurrentWidget(ui->categoryPage);
-}
-
-void MainWindow::showStatisticsPage()
-{
-    loadStatisticsFromBackend();
-    ui->stackedWidget->setCurrentWidget(ui->statisticsPage);
-}
-
 // ============================================================================
-// UI Szövegek és ikonok
+// SZÖVEGEK ÉS IKONOK
 // ============================================================================
 
 QString MainWindow::getLanguageName(Language lang)
@@ -785,122 +668,66 @@ QString MainWindow::getDifficultyIcon(Difficulty diff)
 
 QString MainWindow::getMotivationalMessage(double accuracy)
 {
-    if (accuracy >= 90) {
-        return "Fantasztikus! Te egy nyelvzseni vagy! 🌟";
-    } else if (accuracy >= 80) {
-        return "Nagyszerű munka! Így tovább! 👍";
-    } else if (accuracy >= 70) {
-        return "Jó munka! Még egy kicsit és tökéletes leszel! 💪";
-    } else if (accuracy >= 60) {
-        return "Szép teljesítmény! Folytasd a gyakorlást! 📚";
-    } else if (accuracy >= 50) {
-        return "Jó kezdés! A gyakorlás teszi a mestert! 🎯";
-    } else {
-        return "Ne add fel! Minden mester gyakorlással kezdte! 🚀";
-    }
+    if (accuracy >= 90) return "Fantasztikus! Te egy nyelvzseni vagy! 🌟";
+    if (accuracy >= 80) return "Nagyszerű munka! Így tovább! 👍";
+    if (accuracy >= 70) return "Jó munka! Még egy kicsit és tökéletes leszel! 💪";
+    if (accuracy >= 60) return "Szép teljesítmény! Folytasd a gyakorlást! 📚";
+    if (accuracy >= 50) return "Jó kezdés! A gyakorlás teszi a mestert! 🎯";
+    return "Ne add fel! Minden mester gyakorlással kezdte! 🚀";
 }
 
 // ============================================================================
-// BACKEND INTERFACE - Placeholder függvények
+// BACKEND
 // ============================================================================
 
 void MainWindow::loadQuestionsFromBackend()
 {
-    // TODO: BÁNYAI BENCE - getRandomQuestion() implementálása
-    // TODO: KOSZTEL TAMÁS - loadLanguageData() implementálása
-    // TODO: LUKÁCS VIKTÓRIA - loadQuestions() MySQL-ből
+    gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
 
-    qDebug() << "Backend hívás: loadQuestions("
-             << (int)selectedLanguage << ", "
-             << (int)selectedCategory << ", "
-             << (int)selectedDifficulty << ")";
+    if (gameLogic.getTotalQuestions() == 0) {
+        QMessageBox::warning(this, "Nincs kérdés",
+                             "Ehhez a kombinációhoz még nincsenek kérdések az adatbázisban.");
+        showMainMenu();
+        return;
+    }
 
-    // Ideiglenes: demo kérdések betöltése
-    loadDemoQuestions();
+    qDebug() << "[Backend] Kérdések betöltve:" << gameLogic.getTotalQuestions();
 }
 
 void MainWindow::sendAnswerToBackend(int answerIndex)
 {
-    // TODO: BÁNYAI BENCE - checkAnswer() implementálása
-    // TODO: Backend válasz feldolgozás
-
-    qDebug() << "Backend hívás: checkAnswer(" << answerIndex << ")";
+    qDebug() << "Backend: checkAnswer(" << answerIndex << ")";
 }
 
 void MainWindow::updateStatisticsInBackend()
 {
-    // TODO: NAGY ATTILA - updateStatistics() implementálása
-    // TODO: LUKÁCS VIKTÓRIA - saveUserScore() MySQL-be
-
-    qDebug() << "Backend hívás: updateStatistics("
-             << correctAnswers << "/" << currentQuestions.size()
-             << ", points: " << totalPoints << ")";
+    qDebug() << "Backend: updateStatistics(" << correctAnswers << "/"
+             << gameLogic.getTotalQuestions() << ", points:" << totalPoints << ")";
 }
 
 void MainWindow::loadStatisticsFromBackend()
 {
-    // TODO: NAGY ATTILA - getPlayerStats() implementálása
-    // TODO: LUKÁCS VIKTÓRIA - loadHighScores() MySQL-ből
+    int userId = 1;
+    PlayerStats stats = DatabaseManager::instance().getPlayerStatistics(userId);
 
-    qDebug() << "Backend hívás: loadStatistics()";
-
-    // Ideiglenes demo statisztikák
-    ui->completedLabel->setText("12");
-    ui->wordsLearnedLabel->setText("97");
+    ui->completedLabel->setText(QString::number(stats.totalQuestionsAnswered));
+    ui->wordsLearnedLabel->setText(QString::number(stats.correctAnswers));
     ui->streakLabel->setText("5");
 
-    ui->langStats1->setText("25 szó | 85%");
-    ui->langStats2->setText("42 szó | 92%");
-    ui->langStats3->setText("18 szó | 78%");
-    ui->langStats4->setText("12 szó | 70%");
+    ui->langStats1->setText(QString("%1 szó | %2%")
+                                .arg(stats.correctAnswers)
+                                .arg(stats.totalQuestionsAnswered > 0
+                                         ? qRound(100.0 * stats.correctAnswers / stats.totalQuestionsAnswered)
+                                         : 0));
 }
-
-// ============================================================================
-// DEMO KÉRDÉSEK - Ezt később törölni kell amikor az adatbázis kész van
-// ============================================================================
 
 void MainWindow::loadDemoQuestions()
 {
-    currentQuestions.clear();
-
-    // Szűrés nyelv, kategória, nehézség alapján
-    // DEMO: mindig 10 kérdést generálunk
-
-    for (int i = 1; i <= 10; i++) {
-        Question q;
-        q.id = i;
-        q.language = selectedLanguage;
-        q.category = selectedCategory;
-        q.difficulty = selectedDifficulty;
-        q.points = 10;
-
-        // Demo kérdések generálása
-        q.questionText = "Mit jelent magyarul?";
-        q.word = QString("Szó %1").arg(i);
-        q.answers = QVector<QString>{
-            QString("Válasz A %1").arg(i),
-            QString("Válasz B %1").arg(i),
-            QString("Válasz C %1").arg(i),
-            QString("Válasz D %1").arg(i)
-        };
-        q.correctAnswer = i % 4;  // Véletlenszerű helyes válasz
-
-        currentQuestions.append(q);
-    }
-
-    qDebug() << "Demo kérdések betöltve:" << currentQuestions.size();
+    gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
+    qDebug() << "Demo kérdések:" << gameLogic.getTotalQuestions();
 }
 
 void MainWindow::updateStatistics()
 {
-    // TODO: NAGY ATTILA - később implementálja
-    // Statisztikák frissítése az UI-ban
     qDebug() << "updateStatistics() called";
-}
-
-void MainWindow::filterQuestions()
-{
-    // TODO: KOSZTEL TAMÁS - később implementálja
-    // Kérdések szűrése nyelv, kategória, nehézség alapján
-    qDebug() << "filterQuestions() called";
 }
