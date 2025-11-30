@@ -1,60 +1,21 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QPushButton>
-#include <QVector>
-#include <QString>
 #include <QLabel>
+#include <QMainWindow>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QString>
+#include <QTimer>
+#include <QVector>
+#include "gamelogic.h"
+#include "gametypes.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+namespace Ui {
+class MainWindow;
+}
 QT_END_NAMESPACE
-
-// Nyelv enum
-enum class Language {
-    Hungarian,
-    English,
-    German,
-    Russian
-};
-
-// Kategória enum
-enum class Category {
-    Vocabulary,
-    Grammar,
-    Sentences,
-    Listening
-};
-
-// Nehézségi szint enum
-enum class Difficulty {
-    Beginner,
-    Intermediate,
-    Advanced
-};
-
-// Kérdés struktúra - most nyelvtanuláshoz optimalizálva
-struct Question {
-    QString questionText;        // "Mit jelent ez a szó?"
-    QString word;                // A tanítandó szó
-    QVector<QString> answers;    // Válaszlehetőségek
-    int correctAnswer;           // Helyes válasz indexe
-    int points;                  // Pontérték
-    Language language;           // Nyelv
-    Category category;           // Kategória
-    Difficulty difficulty;       // Nehézségi szint
-    QString explanation;         // Magyarázat (opcionális)
-};
-
-// Felhasználói statisztika struktúra
-struct LanguageStats {
-    int wordsLearned;
-    int quizzesCompleted;
-    int totalCorrect;
-    int totalQuestions;
-    double accuracy;
-};
 
 class MainWindow : public QMainWindow
 {
@@ -64,51 +25,43 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    // ========================================================================
-    // BARTA CSONGOR - Qt GUI felület kezelés
-    // ========================================================================
-    void showMainMenu();           // Főmenü megjelenítése
-    void displayQuestion();        // Kérdés megjelenítése
-    void updateUIState();          // UI állapot frissítése
+    // Oldalak megjelenítése
+    void showMainMenu();
+    void showLanguageSelectOnly();          // ÚJ!
+    void showProfilePage();                 // ÚJ!
+    void showStatisticsPage();
+    void showCategoryPage();
 
-    // ========================================================================
-    // SZTÁNYI GYÖRGY - Interaktív elemek
-    // ========================================================================
-    void showResults();            // Eredménylap megjelenítése
-    void restartGame();            // Játék újraindítása
-    void highlightAnswer(int answerIndex, bool isCorrect);  // Válasz kiemelése
-
-    // ========================================================================
-    // HRABINA GERGŐ - Kérdések és válaszok kezelése
-    // ========================================================================
-    void handleAnswer(int answerIndex);     // Válasz feldolgozása
-    void showFeedback(bool isCorrect);      // Visszajelzés megjelenítése
-    void enableNextQuestion();              // Következő kérdés engedélyezése
+    // Kvíz funkciók
+    void displayQuestion();
+    void updateUIState();
+    void showResults();
+    void restartGame();
+    void highlightAnswer(int answerIndex, bool isCorrect);
+    void handleAnswer(int answerIndex);
+    void checkSelectedAnswer();
+    void showFeedback(bool isCorrect);
+    void enableNextQuestion();
 
 private slots:
-    // ========================================================================
-    // Nyelvválasztó slotok
-    // ========================================================================
+    // Nyelvválasztó gombok
     void onHungarianSelected();
     void onEnglishSelected();
     void onGermanSelected();
     void onRussianSelected();
 
-    // ========================================================================
-    // Kategória és nehézségi szint slotok
-    // ========================================================================
+    // Kategória gombok
     void onVocabularySelected();
     void onGrammarSelected();
     void onSentencesSelected();
     void onListeningSelected();
 
+    // Nehézségi szint gombok
     void onBeginnerSelected();
     void onIntermediateSelected();
     void onAdvancedSelected();
 
-    // ========================================================================
-    // Navigációs slotok
-    // ========================================================================
+    // Navigációs gombok
     void onStartQuiz();
     void onBackFromCategory();
     void onBackToMenu();
@@ -117,66 +70,66 @@ private slots:
     void onRestartSame();
     void onNextLevel();
 
-    // ========================================================================
-    // Sidebar slotok
-    // ========================================================================
+    // Sidebar gombok
     void onHomeClicked();
     void onLanguagesClicked();
     void onStatsClicked();
     void onProfileClicked();
     void onLogoutClicked();
+    void onBackFromStatsClicked();
 
 private:
     Ui::MainWindow *ui;
+    GameLogic gameLogic;
 
-    // ========================================================================
     // Játék állapot változók
-    // ========================================================================
-    QVector<Question> questions;
-    int currentQuestionIndex;
     int correctAnswers;
     int totalPoints;
     bool answerSelected;
+    int selectedAnswerIndex;
 
     // Kiválasztott beállítások
     Language selectedLanguage;
     Category selectedCategory;
     Difficulty selectedDifficulty;
 
-    // Statisztikák
-    QMap<Language, LanguageStats> statistics;
-    int currentStreak;              // Napi sorozat
-    int totalWordsLearned;          // Összes megtanult szó
+    // Statisztika változók
+    int currentStreak;
+    int totalWordsLearned;
 
     // UI elemek
-    QVector<QPushButton*> answerButtons;
+    QVector<QPushButton *> answerButtons;
+    QPushButton *selectedCategoryButton;
+    QPushButton *selectedDifficultyButton;
 
-    // ========================================================================
-    // Segéd függvények
-    // ========================================================================
+    // Segédfüggvények
     void setupConnections();
-    void loadQuestions();
-    void createAnswerButtons();
+    void createAnswerButtons(const Question &q);
     void clearAnswerButtons();
-    void updateStatistics();
     void updateQuestionCounter();
     void updateCurrentScore();
-    void showCategoryPage();
-    void showStatisticsPage();
+    void setMainMenuVisibility(bool showStats, bool showLanguages);  // ÚJ!
 
-    // Nyelv és kategória kezelés
+    // Kijelölés kezelő függvények
+    void handleCategorySelection(QPushButton *button, Category category);
+    void handleDifficultySelection(QPushButton *button, Difficulty difficulty);
+
+    // UI szövegek
     QString getLanguageName(Language lang);
     QString getLanguageFlag(Language lang);
     QString getCategoryName(Category cat);
     QString getCategoryIcon(Category cat);
     QString getDifficultyName(Difficulty diff);
     QString getDifficultyIcon(Difficulty diff);
-
-    // Motivációs üzenet
     QString getMotivationalMessage(double accuracy);
 
-    // Kérdések szűrése
-    void filterQuestions();
+    // Backend interface
+    void loadQuestionsFromBackend();
+    void sendAnswerToBackend(int answerIndex);
+    void updateStatisticsInBackend();
+    void loadStatisticsFromBackend();
+    void loadDemoQuestions();
+    void updateStatistics();
 };
 
 #endif // MAINWINDOW_H
