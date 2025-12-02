@@ -1,8 +1,8 @@
 #ifndef QAMANAGER_H
 #define QAMANAGER_H
 
-#include <QString>
 #include <QDebug>
+#include <QString>
 // Nincs szükség külön include-ra itt a fájlkezeléshez, mert az a cpp-ben lesz,
 // de a QString és QDebug kell.
 

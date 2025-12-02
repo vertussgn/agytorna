@@ -1,10 +1,10 @@
 #include "qamanager.h"
-#include "databasemanager.h"
-#include <QDate>
-#include <QTime>
-#include <QFile>            // Fájlkezeléshez
-#include <QTextStream>      // Szöveg írásához
 #include <QCoreApplication> // Hogy megtaláljuk az exe melletti mappát
+#include <QDate>
+#include <QFile>       // Fájlkezeléshez
+#include <QTextStream> // Szöveg írásához
+#include <QTime>
+#include "databasemanager.h"
 
 QaManager::QaManager() {}
 
@@ -27,13 +27,12 @@ void QaManager::generateErrorReport(int currentScore, int maxPossibleScore)
 {
     if (currentScore < 0) {
         logSystem(QString("PONTOZÁSI HIBA: A pontszám negatív! (%1)").arg(currentScore), true);
-    }
-    else if (currentScore > maxPossibleScore) {
+    } else if (currentScore > maxPossibleScore) {
         logSystem(QString("PONTOZÁSI HIBA: A pontszám meghaladja a maximumot! (%1 / %2)")
-                      .arg(currentScore).arg(maxPossibleScore), true);
-    }
-    else {
-
+                      .arg(currentScore)
+                      .arg(maxPossibleScore),
+                  true);
+    } else {
     }
 }
 
@@ -41,8 +40,8 @@ void QaManager::generateErrorReport(int currentScore, int maxPossibleScore)
 void QaManager::logSystem(const QString &message, bool isError)
 {
     // 1. Időbélyeg és formátum összeállítása
-    QString timestamp = QDate::currentDate().toString("yyyy-MM-dd") + " " +
-                        QTime::currentTime().toString("HH:mm:ss");
+    QString timestamp = QDate::currentDate().toString("yyyy-MM-dd") + " "
+                        + QTime::currentTime().toString("HH:mm:ss");
 
     QString prefix = isError ? "[HIBA]" : "[INFO]";
     QString finalLogMessage = QString("%1 %2: %3").arg(timestamp).arg(prefix).arg(message);

@@ -20,7 +20,7 @@ private:
 
     // --- 3. Játék Logika tesztek ---
     static void testGameLogicCalculation(); // Matek teszt
-    static void testGameLogicSimulation();  // ÚJ: Egy teljes kör szimulálása (kérdés -> válasz -> pont)
+    static void testGameLogicSimulation(); // ÚJ: Egy teljes kör szimulálása (kérdés -> válasz -> pont)
 };
 
 #endif // TESTRUNNER_H

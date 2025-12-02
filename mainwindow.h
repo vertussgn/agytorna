@@ -25,8 +25,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-
-     void startGame();
+    void startGame();
 
     // Oldalak megjelenítése
     void showMainMenu();

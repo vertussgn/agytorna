@@ -1,18 +1,18 @@
 #include "mainwindow.h"
 #include <QDebug>
 #include <QMessageBox>
+#include <QSqlQuery>
 #include <QVBoxLayout>
 #include "databasemanager.h"
-#include "ui_mainwindow.h"
 #include "qamanager.h"
-#include <QSqlQuery>
+#include "ui_mainwindow.h"
 
 // ÚJ HEADEREK A DESIGNOS ABLAKOKHOZ
 #include <QDialog>
-#include <QFormLayout>
-#include <QLineEdit>
 #include <QDialogButtonBox>
+#include <QFormLayout>
 #include <QLabel>
+#include <QLineEdit>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -92,7 +92,8 @@ void MainWindow::setMainMenuVisibility(bool showStats, bool showLanguages)
 // EGYEDI DESIGN SEGÉDFÜGGVÉNYEK
 // ============================================================================
 
-QString getDialogStyle() {
+QString getDialogStyle()
+{
     return R"(
         QDialog { background-color: #ffffff; border-radius: 12px; border: 1px solid #bdc3c7; }
         QLabel { font-size: 14px; color: #2c3e50; font-weight: bold; }
@@ -162,12 +163,14 @@ void MainWindow::showProfilePage()
         // Sorozat kártya
         QLabel *streakLabel = new QLabel(QString("🔥 Sorozat\n%1 nap").arg(u.streak));
         streakLabel->setAlignment(Qt::AlignCenter);
-        streakLabel->setStyleSheet("border: 2px solid #e67e22; border-radius: 10px; padding: 10px; color: #e67e22; font-size: 15px; background-color: #fff5e6;");
+        streakLabel->setStyleSheet("border: 2px solid #e67e22; border-radius: 10px; padding: 10px; "
+                                   "color: #e67e22; font-size: 15px; background-color: #fff5e6;");
 
         // Pontszám kártya (ÚJ)
         QLabel *scoreLabel = new QLabel(QString("🏆 Pontszám\n%1").arg(stats.totalScore));
         scoreLabel->setAlignment(Qt::AlignCenter);
-        scoreLabel->setStyleSheet("border: 2px solid #f1c40f; border-radius: 10px; padding: 10px; color: #d4ac0d; font-size: 15px; background-color: #fef9e7;");
+        scoreLabel->setStyleSheet("border: 2px solid #f1c40f; border-radius: 10px; padding: 10px; "
+                                  "color: #d4ac0d; font-size: 15px; background-color: #fef9e7;");
 
         statsLayout->addWidget(streakLabel);
         statsLayout->addWidget(scoreLabel);
@@ -186,7 +189,10 @@ void MainWindow::showProfilePage()
         layout->addWidget(btnLogout);
         layout->addWidget(btnClose);
 
-        connect(btnRename, &QPushButton::clicked, [&]() { dlg.accept(); handleChangeUsername(); });
+        connect(btnRename, &QPushButton::clicked, [&]() {
+            dlg.accept();
+            handleChangeUsername();
+        });
         connect(btnLogout, &QPushButton::clicked, [&]() {
             dlg.accept();
             currentUserId = -1;
@@ -230,8 +236,14 @@ void MainWindow::showProfilePage()
     layout->addWidget(btnReg);
     layout->addWidget(btnCancel);
 
-    connect(btnLogin, &QPushButton::clicked, [&]() { dlg.accept(); handleLogin(); });
-    connect(btnReg, &QPushButton::clicked, [&]() { dlg.accept(); handleRegister(); });
+    connect(btnLogin, &QPushButton::clicked, [&]() {
+        dlg.accept();
+        handleLogin();
+    });
+    connect(btnReg, &QPushButton::clicked, [&]() {
+        dlg.accept();
+        handleRegister();
+    });
     connect(btnCancel, &QPushButton::clicked, &dlg, &QDialog::reject);
 
     dlg.exec();
@@ -250,7 +262,8 @@ void MainWindow::handleLogin()
 
     QLabel *title = new QLabel("Jelentkezz be!");
     title->setAlignment(Qt::AlignCenter);
-    title->setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #2c3e50;");
+    title->setStyleSheet(
+        "font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #2c3e50;");
 
     // Felhasználónév mező
     QLabel *userLabel = new QLabel("Felhasználónév:");
@@ -291,12 +304,15 @@ void MainWindow::handleLogin()
         QString username = userEdit->text();
         QString password = passEdit->text();
 
-        if (username.isEmpty() || password.isEmpty()) return;
+        if (username.isEmpty() || password.isEmpty())
+            return;
 
         int id = DatabaseManager::instance().loginUser(username, password);
         if (id != -1) {
             currentUserId = id;
-            QMessageBox::information(this, "Siker", "Sikeres bejelentkezés!\nÜdv, " + username + "!");
+            QMessageBox::information(this,
+                                     "Siker",
+                                     "Sikeres bejelentkezés!\nÜdv, " + username + "!");
             QaManager::logSystem("Felhasználó bejelentkezett: " + username);
             loadStatisticsFromBackend();
         } else {
@@ -318,7 +334,8 @@ void MainWindow::handleRegister()
 
     QLabel *title = new QLabel("Hozz létre fiókot!");
     title->setAlignment(Qt::AlignCenter);
-    title->setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #2c3e50;");
+    title->setStyleSheet(
+        "font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #2c3e50;");
 
     // Felhasználónév
     QLabel *userLabel = new QLabel("Válassz felhasználónevet:");
@@ -359,17 +376,23 @@ void MainWindow::handleRegister()
         QString username = userEdit->text();
         QString password = passEdit->text();
 
-        if (username.isEmpty() || password.isEmpty()) return;
+        if (username.isEmpty() || password.isEmpty())
+            return;
 
         int result = DatabaseManager::instance().registerUser(username, password);
 
         if (result == -2) {
             QMessageBox::warning(this, "Hiba", "Ez a felhasználónév már foglalt!");
         } else if (result == -1) {
-            QMessageBox::critical(this, "Hiba", "Adatbázis hiba történt a regisztráció során.\nEllenőrizd a log fájlt.");
+            QMessageBox::critical(
+                this,
+                "Hiba",
+                "Adatbázis hiba történt a regisztráció során.\nEllenőrizd a log fájlt.");
         } else {
             currentUserId = result;
-            QMessageBox::information(this, "Siker", "Sikeres regisztráció!\nJó tanulást, " + username + "!");
+            QMessageBox::information(this,
+                                     "Siker",
+                                     "Sikeres regisztráció!\nJó tanulást, " + username + "!");
             QaManager::logSystem("Új felhasználó regisztrált: " + username);
             loadStatisticsFromBackend();
         }
@@ -424,7 +447,8 @@ void MainWindow::handleChangeUsername()
                 QaManager::logSystem("Felhasználónév módosítva: " + u.username + " -> " + newName);
                 showProfilePage();
             } else {
-                QMessageBox::warning(this, "Hiba", "Nem sikerült a névváltás.\nLehet, hogy ez a név már foglalt.");
+                QMessageBox::warning(
+                    this, "Hiba", "Nem sikerült a névváltás.\nLehet, hogy ez a név már foglalt.");
             }
         }
     }
@@ -442,9 +466,9 @@ void MainWindow::loadStatisticsFromBackend()
         return;
     }
 
-    int tests  = DatabaseManager::instance().getTestCount(currentUserId);
-    int words  = DatabaseManager::instance().getLearnedWords(currentUserId);
-    User u     = DatabaseManager::instance().getUser(currentUserId);
+    int tests = DatabaseManager::instance().getTestCount(currentUserId);
+    int words = DatabaseManager::instance().getLearnedWords(currentUserId);
+    User u = DatabaseManager::instance().getUser(currentUserId);
 
     ui->completedLabel->setText(QString::number(tests));
     ui->wordsLearnedLabel->setText(QString::number(words));
@@ -531,7 +555,8 @@ void MainWindow::restartGame()
     gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
 
     if (gameLogic.getTotalQuestions() == 0) {
-        QMessageBox::information(this, "Nincs kérdés",
+        QMessageBox::information(this,
+                                 "Nincs kérdés",
                                  "Ehhez a kombinációhoz még nincsenek kérdések az adatbázisban.");
         QaManager::logSystem("Újraindítás sikertelen: Nincs kérdés.", true);
         return;
@@ -578,7 +603,8 @@ void MainWindow::highlightAnswer(int answerIndex, bool isCorrect)
 
 void MainWindow::handleAnswer(int answerIndex)
 {
-    if (answerSelected) return;
+    if (answerSelected)
+        return;
 
     if (selectedAnswerIndex >= 0 && selectedAnswerIndex < answerButtons.size()) {
         answerButtons[selectedAnswerIndex]->setStyleSheet(
@@ -600,7 +626,8 @@ void MainWindow::handleAnswer(int answerIndex)
 void MainWindow::checkSelectedAnswer()
 {
     const Question *currentQ = gameLogic.getCurrentQuestion();
-    if (selectedAnswerIndex < 0 || currentQ == nullptr) return;
+    if (selectedAnswerIndex < 0 || currentQ == nullptr)
+        return;
 
     bool isCorrect = gameLogic.checkAnswer(selectedAnswerIndex);
 
@@ -621,9 +648,10 @@ void MainWindow::showFeedback(bool isCorrect)
 {
     if (isCorrect) {
         ui->feedbackLabel->setText("✓ Helyes válasz! Nagyszerű! 🎉");
-        ui->feedbackLabel->setStyleSheet("QLabel { background-color: #d5f4e6; "
-                                         "color: #0f5132; border: 2px solid #27ae60; border-radius: 12px; "
-                                         "padding: 15px; font-size: 18px; font-weight: bold; }");
+        ui->feedbackLabel->setStyleSheet(
+            "QLabel { background-color: #d5f4e6; "
+            "color: #0f5132; border: 2px solid #27ae60; border-radius: 12px; "
+            "padding: 15px; font-size: 18px; font-weight: bold; }");
     } else {
         const Question *currentQ = gameLogic.getCurrentQuestion();
         QString correctAns = "";
@@ -634,9 +662,10 @@ void MainWindow::showFeedback(bool isCorrect)
             }
         }
         ui->feedbackLabel->setText(QString("✗ Helytelen! A helyes válasz: %1").arg(correctAns));
-        ui->feedbackLabel->setStyleSheet("QLabel { background-color: #f8d7da; "
-                                         "color: #721c24; border: 2px solid #e74c3c; border-radius: 12px; "
-                                         "padding: 15px; font-size: 18px; font-weight: bold; }");
+        ui->feedbackLabel->setStyleSheet(
+            "QLabel { background-color: #f8d7da; "
+            "color: #721c24; border: 2px solid #e74c3c; border-radius: 12px; "
+            "padding: 15px; font-size: 18px; font-weight: bold; }");
     }
 }
 
@@ -712,8 +741,9 @@ void MainWindow::handleCategorySelection(QPushButton *button, Category category)
         selectedCategoryButton->setStyleSheet("background-color: rgb(0, 0, 0);");
     }
 
-    button->setStyleSheet("QPushButton { background-color: rgb(231, 76, 60); "
-                          "color: white; border: 3px solid rgb(192, 57, 43); border-radius: 10px; }");
+    button->setStyleSheet(
+        "QPushButton { background-color: rgb(231, 76, 60); "
+        "color: white; border: 3px solid rgb(192, 57, 43); border-radius: 10px; }");
 
     selectedCategoryButton = button;
     selectedCategory = category;
@@ -746,8 +776,9 @@ void MainWindow::handleDifficultySelection(QPushButton *button, Difficulty diffi
         selectedDifficultyButton->setStyleSheet("background-color: rgb(0, 0, 0);");
     }
 
-    button->setStyleSheet("QPushButton { background-color: rgb(255, 165, 0); "
-                          "color: white; border: 3px solid rgb(255, 140, 0); border-radius: 10px; }");
+    button->setStyleSheet(
+        "QPushButton { background-color: rgb(255, 165, 0); "
+        "color: white; border: 3px solid rgb(255, 140, 0); border-radius: 10px; }");
 
     selectedDifficultyButton = button;
     selectedDifficulty = difficulty;
@@ -767,7 +798,8 @@ void MainWindow::startGame()
 
     // 2. Ellenőrzés, hogy van-e kérdés
     if (gameLogic.getTotalQuestions() == 0) {
-        QMessageBox::information(this, "Nincs kérdés",
+        QMessageBox::information(this,
+                                 "Nincs kérdés",
                                  "Ehhez a kombinációhoz még nincsenek kérdések az adatbázisban.");
         return;
     }
@@ -779,7 +811,8 @@ void MainWindow::startGame()
     selectedAnswerIndex = -1;
 
     // 4. Kvíz oldal megjelenítése és első kérdés
-    QaManager::logSystem("Kvíz indul: " + getCategoryName(selectedCategory) + " - " + getDifficultyName(selectedDifficulty));
+    QaManager::logSystem("Kvíz indul: " + getCategoryName(selectedCategory) + " - "
+                         + getDifficultyName(selectedDifficulty));
 
     QString categoryInfo = QString("%1 %2 | %3 %4")
                                .arg(getCategoryIcon(selectedCategory))
@@ -823,9 +856,11 @@ void MainWindow::onNextQuestion()
 
 void MainWindow::onQuitQuiz()
 {
-    QMessageBox::StandardButton reply = QMessageBox::question(this, "Kilépés",
-                                                              "Biztosan abbahagyod a kvízt? Az eredmények nem lesznek mentve.",
-                                                              QMessageBox::Yes | QMessageBox::No);
+    QMessageBox::StandardButton reply
+        = QMessageBox::question(this,
+                                "Kilépés",
+                                "Biztosan abbahagyod a kvízt? Az eredmények nem lesznek mentve.",
+                                QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
         QaManager::logSystem("Felhasználó megszakította a kvízt.");
@@ -882,7 +917,8 @@ void MainWindow::onProfileClicked()
 
 void MainWindow::onLogoutClicked()
 {
-    QMessageBox::StandardButton reply = QMessageBox::question(this, "Kijelentkezés",
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+                                                              "Kijelentkezés",
                                                               "Biztosan ki szeretnél jelentkezni?",
                                                               QMessageBox::Yes | QMessageBox::No);
 
@@ -914,17 +950,26 @@ void MainWindow::setupConnections()
     // Hallás utáni törölve
 
     connect(ui->beginnerButton, &QPushButton::clicked, this, &MainWindow::onBeginnerSelected);
-    connect(ui->intermediateButton, &QPushButton::clicked, this, &MainWindow::onIntermediateSelected);
+    connect(ui->intermediateButton,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::onIntermediateSelected);
     connect(ui->advancedButton, &QPushButton::clicked, this, &MainWindow::onAdvancedSelected);
 
     connect(ui->startQuizButton, &QPushButton::clicked, this, &MainWindow::onStartQuiz);
-    connect(ui->backFromCategoryButton, &QPushButton::clicked, this, &MainWindow::onBackFromCategory);
+    connect(ui->backFromCategoryButton,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::onBackFromCategory);
     connect(ui->backToMenuButton, &QPushButton::clicked, this, &MainWindow::onBackToMenu);
     connect(ui->nextQuestionButton, &QPushButton::clicked, this, &MainWindow::onNextQuestion);
     connect(ui->quitQuizButton, &QPushButton::clicked, this, &MainWindow::onQuitQuiz);
     connect(ui->restartSameButton, &QPushButton::clicked, this, &MainWindow::onRestartSame);
     connect(ui->nextLevelButton, &QPushButton::clicked, this, &MainWindow::onNextLevel);
-    connect(ui->backFromStatsButton, &QPushButton::clicked, this, &MainWindow::onBackFromStatsClicked);
+    connect(ui->backFromStatsButton,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::onBackFromStatsClicked);
 
     connect(ui->homeButton, &QPushButton::clicked, this, &MainWindow::onHomeClicked);
     connect(ui->languagesButton, &QPushButton::clicked, this, &MainWindow::onLanguagesClicked);
@@ -948,10 +993,11 @@ void MainWindow::createAnswerButtons(const Question &q)
         btn->setMinimumHeight(60);
         btn->setMaximumHeight(60);
         btn->setCursor(Qt::PointingHandCursor);
-        btn->setStyleSheet("QPushButton { background-color: white; color: #000000; "
-                           "border: 2px solid #bdc3c7; border-radius: 10px; padding: 15px; "
-                           "font-size: 16px; text-align: left; } "
-                           "QPushButton:hover { background-color: #ecf0f1; border-color: #000000; }");
+        btn->setStyleSheet(
+            "QPushButton { background-color: white; color: #000000; "
+            "border: 2px solid #bdc3c7; border-radius: 10px; padding: 15px; "
+            "font-size: 16px; text-align: left; } "
+            "QPushButton:hover { background-color: #ecf0f1; border-color: #000000; }");
 
         connect(btn, &QPushButton::clicked, [this, i]() { handleAnswer(i); });
 
@@ -988,74 +1034,107 @@ void MainWindow::updateCurrentScore()
 QString MainWindow::getLanguageName(Language lang)
 {
     switch (lang) {
-    case Language::Hungarian: return "Magyar";
-    case Language::English: return "English";
-    case Language::German: return "Deutsch";
-    case Language::Russian: return "Русский";
-    default: return "Ismeretlen";
+    case Language::Hungarian:
+        return "Magyar";
+    case Language::English:
+        return "English";
+    case Language::German:
+        return "Deutsch";
+    case Language::Russian:
+        return "Русский";
+    default:
+        return "Ismeretlen";
     }
 }
 
 QString MainWindow::getLanguageFlag(Language lang)
 {
     switch (lang) {
-    case Language::Hungarian: return "🇭🇺";
-    case Language::English: return "🇬🇧";
-    case Language::German: return "🇩🇪";
-    case Language::Russian: return "🇷🇺";
-    default: return "🌍";
+    case Language::Hungarian:
+        return "🇭🇺";
+    case Language::English:
+        return "🇬🇧";
+    case Language::German:
+        return "🇩🇪";
+    case Language::Russian:
+        return "🇷🇺";
+    default:
+        return "🌍";
     }
 }
 
 QString MainWindow::getCategoryName(Category cat)
 {
     switch (cat) {
-    case Category::Vocabulary: return "Szókincs";
-    case Category::Grammar: return "Nyelvtan";
-    case Category::Sentences: return "Mondatok";
-    case Category::Listening: return "Hallás utáni";
-    default: return "Ismeretlen";
+    case Category::Vocabulary:
+        return "Szókincs";
+    case Category::Grammar:
+        return "Nyelvtan";
+    case Category::Sentences:
+        return "Mondatok";
+    case Category::Listening:
+        return "Hallás utáni";
+    default:
+        return "Ismeretlen";
     }
 }
 
 QString MainWindow::getCategoryIcon(Category cat)
 {
     switch (cat) {
-    case Category::Vocabulary: return "📖";
-    case Category::Grammar: return "✏️";
-    case Category::Sentences: return "💬";
-    case Category::Listening: return "🎧";
-    default: return "📚";
+    case Category::Vocabulary:
+        return "📖";
+    case Category::Grammar:
+        return "✏️";
+    case Category::Sentences:
+        return "💬";
+    case Category::Listening:
+        return "🎧";
+    default:
+        return "📚";
     }
 }
 
 QString MainWindow::getDifficultyName(Difficulty diff)
 {
     switch (diff) {
-    case Difficulty::Beginner: return "Kezdő";
-    case Difficulty::Intermediate: return "Haladó";
-    case Difficulty::Advanced: return "Profi";
-    default: return "Ismeretlen";
+    case Difficulty::Beginner:
+        return "Kezdő";
+    case Difficulty::Intermediate:
+        return "Haladó";
+    case Difficulty::Advanced:
+        return "Profi";
+    default:
+        return "Ismeretlen";
     }
 }
 
 QString MainWindow::getDifficultyIcon(Difficulty diff)
 {
     switch (diff) {
-    case Difficulty::Beginner: return "🌱";
-    case Difficulty::Intermediate: return "⭐";
-    case Difficulty::Advanced: return "🏆";
-    default: return "🎯";
+    case Difficulty::Beginner:
+        return "🌱";
+    case Difficulty::Intermediate:
+        return "⭐";
+    case Difficulty::Advanced:
+        return "🏆";
+    default:
+        return "🎯";
     }
 }
 
 QString MainWindow::getMotivationalMessage(double accuracy)
 {
-    if (accuracy >= 90) return "Fantasztikus! Te egy nyelvzseni vagy! 🌟";
-    if (accuracy >= 80) return "Nagyszerű munka! Így tovább! 👍";
-    if (accuracy >= 70) return "Jó munka! Még egy kicsit és tökéletes leszel! 💪";
-    if (accuracy >= 60) return "Szép teljesítmény! Folytasd a gyakorlást! 📚";
-    if (accuracy >= 50) return "Jó kezdés! A gyakorlás teszi a mestert! 🎯";
+    if (accuracy >= 90)
+        return "Fantasztikus! Te egy nyelvzseni vagy! 🌟";
+    if (accuracy >= 80)
+        return "Nagyszerű munka! Így tovább! 👍";
+    if (accuracy >= 70)
+        return "Jó munka! Még egy kicsit és tökéletes leszel! 💪";
+    if (accuracy >= 60)
+        return "Szép teljesítmény! Folytasd a gyakorlást! 📚";
+    if (accuracy >= 50)
+        return "Jó kezdés! A gyakorlás teszi a mestert! 🎯";
     return "Ne add fel! Minden mester gyakorlással kezdte! 🚀";
 }
 
@@ -1068,13 +1147,15 @@ void MainWindow::loadQuestionsFromBackend()
     gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
 
     if (gameLogic.getTotalQuestions() == 0) {
-        QMessageBox::warning(this, "Nincs kérdés",
+        QMessageBox::warning(this,
+                             "Nincs kérdés",
                              "Ehhez a kombinációhoz még nincsenek kérdések az adatbázisban.");
         showMainMenu();
         return;
     }
 
-    QaManager::logSystem("Backend: Kérdések betöltve, db: " + QString::number(gameLogic.getTotalQuestions()));
+    QaManager::logSystem("Backend: Kérdések betöltve, db: "
+                         + QString::number(gameLogic.getTotalQuestions()));
 }
 
 void MainWindow::sendAnswerToBackend(int answerIndex)
@@ -1084,9 +1165,11 @@ void MainWindow::sendAnswerToBackend(int answerIndex)
 
 void MainWindow::updateStatisticsInBackend()
 {
-    if (currentUserId == -1) return;
+    if (currentUserId == -1)
+        return;
     DatabaseManager::instance().updateStreak(currentUserId);
-    DatabaseManager::instance().saveUserScore(currentUserId, selectedLanguage,
+    DatabaseManager::instance().saveUserScore(currentUserId,
+                                              selectedLanguage,
                                               correctAnswers,
                                               gameLogic.getTotalQuestions(),
                                               totalPoints);
@@ -1117,7 +1200,7 @@ void MainWindow::showStatisticsPage()
         QPair<int, int> stats = DatabaseManager::instance().getStatsForLanguage(currentUserId, lang);
         int correct = stats.first;
         int total = stats.second;
-        double percent = (total > 0) ? ((double)correct / total * 100.0) : 0.0;
+        double percent = (total > 0) ? ((double) correct / total * 100.0) : 0.0;
 
         // Kivettem a % jelet
         return QString("%1 szó").arg(correct).arg(QString::number(percent, 'f', 0));

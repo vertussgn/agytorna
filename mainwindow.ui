@@ -347,7 +347,7 @@ QLabel#feedbackLabel {
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="mainMenuPage">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1199,7 +1199,7 @@ QLabel#feedbackLabel {
              <item>
               <widget class="QLabel" name="langIcon1">
                <property name="styleSheet">
-                <string notr="true">font-size: 40px;</string>
+                <string notr="true">font-size: 40px;  color: #2c3e50;</string>
                </property>
                <property name="text">
                 <string>HU</string>
@@ -1250,7 +1250,7 @@ QLabel#feedbackLabel {
              <item>
               <widget class="QLabel" name="langIcon2">
                <property name="styleSheet">
-                <string notr="true">font-size: 40px;</string>
+                <string notr="true">font-size: 40px; color: #2c3e50;</string>
                </property>
                <property name="text">
                 <string>EN</string>
@@ -1301,7 +1301,7 @@ QLabel#feedbackLabel {
              <item>
               <widget class="QLabel" name="langIcon3">
                <property name="styleSheet">
-                <string notr="true">font-size: 40px;</string>
+                <string notr="true">font-size: 40px ; color: #2c3e50;</string>
                </property>
                <property name="text">
                 <string>DE</string>
@@ -1352,7 +1352,7 @@ QLabel#feedbackLabel {
              <item>
               <widget class="QLabel" name="langIcon4">
                <property name="styleSheet">
-                <string notr="true">font-size: 40px;</string>
+                <string notr="true">font-size: 40px;  color: #2c3e50;</string>
                </property>
                <property name="text">
                 <string>RU</string>

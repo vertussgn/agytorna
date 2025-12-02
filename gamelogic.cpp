@@ -45,7 +45,6 @@ bool GameLogic::checkAnswer(int selectedAnswerIndex)
         currentScore += q->points;
         correctAnswersCount++;
 
-
         QaManager::generateErrorReport(currentScore, 1000);
 
         QaManager::logSystem(QString("Helyes válasz! Új pontszám: %1").arg(currentScore));
@@ -71,10 +70,11 @@ void GameLogic::updateStatistics(int userId)
                                                              currentQuizQuestions.size(),
                                                              currentScore);
 
-    if(success) {
+    if (success) {
         QaManager::logSystem(QString("Statisztika mentve UserID: %1 részére.").arg(userId));
     } else {
-        QaManager::logSystem(QString("HIBA a statisztika mentésekor UserID: %1 részére!").arg(userId), true);
+        QaManager::logSystem(QString("HIBA a statisztika mentésekor UserID: %1 részére!").arg(userId),
+                             true);
     }
 }
 
@@ -97,11 +97,10 @@ void GameLogic::resetGameData()
     currentQuizQuestions.clear();
 }
 
-
 void GameLogic::setLanguage(Language lang)
 {
     currentLanguage = lang;
-    QaManager::logSystem("Nyelv beállítva: " + QString::number((int)lang));
+    QaManager::logSystem("Nyelv beállítva: " + QString::number((int) lang));
 }
 
 void GameLogic::loadLanguageData()
@@ -126,8 +125,7 @@ void GameLogic::refreshQuestionPool(Category cat, Difficulty diff)
     if (!currentQuizQuestions.isEmpty()) {
         currentQuestionIndex = 0;
         QaManager::logSystem(QString("Siker! %1 kérdés betöltve.").arg(currentQuizQuestions.size()));
-    }
-    else {
+    } else {
         currentQuestionIndex = -1;
         QaManager::logSystem("FIGYELEM: Nem érkezett kérdés a megadott paraméterekkel.", true);
     }

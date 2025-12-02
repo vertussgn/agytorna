@@ -1,10 +1,10 @@
 #include "databasemanager.h"
-#include "qamanager.h"
 #include <QDate>
 #include <QDebug>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QVariant>
+#include "qamanager.h"
 
 DatabaseManager &DatabaseManager::instance()
 {
@@ -16,7 +16,8 @@ DatabaseManager::DatabaseManager() {}
 
 bool DatabaseManager::open(const QString &dbPath)
 {
-    if (m_db.isOpen()) return true;
+    if (m_db.isOpen())
+        return true;
 
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(dbPath);
@@ -94,7 +95,8 @@ QVector<Question> DatabaseManager::loadQuestions(Language language,
                                                  int limit)
 {
     QVector<Question> list;
-    if (!m_db.isOpen()) return list;
+    if (!m_db.isOpen())
+        return list;
 
     QSqlQuery q(m_db);
     q.prepare("SELECT id, question_text, word, answer_a, answer_b, answer_c, answer_d, "
@@ -114,8 +116,10 @@ QVector<Question> DatabaseManager::loadQuestions(Language language,
             qu.id = q.value(0).toInt();
             qu.questionText = q.value(1).toString();
             qu.word = q.value(2).toString();
-            qu.answers = {q.value(3).toString(), q.value(4).toString(),
-                          q.value(5).toString(), q.value(6).toString()};
+            qu.answers = {q.value(3).toString(),
+                          q.value(4).toString(),
+                          q.value(5).toString(),
+                          q.value(6).toString()};
             qu.correctAnswer = q.value(7).toInt();
             qu.points = q.value(8).toInt();
             qu.language = language;
@@ -129,23 +133,27 @@ QVector<Question> DatabaseManager::loadQuestions(Language language,
 
 int DatabaseManager::getOrCreateUser(const QString &username)
 {
-    if (!m_db.isOpen()) return -1;
+    if (!m_db.isOpen())
+        return -1;
     QSqlQuery q(m_db);
     q.prepare("SELECT id FROM users WHERE username = :u");
     q.bindValue(":u", username);
     q.exec();
-    if (q.next()) return q.value(0).toInt();
+    if (q.next())
+        return q.value(0).toInt();
 
     QSqlQuery ins(m_db);
     ins.prepare("INSERT INTO users (username, password, streak_count) VALUES (:u, 'default', 0)");
     ins.bindValue(":u", username);
-    if (!ins.exec()) return -1;
+    if (!ins.exec())
+        return -1;
     return ins.lastInsertId().toInt();
 }
 
 int DatabaseManager::registerUser(const QString &username, const QString &password)
 {
-    if (!m_db.isOpen()) return -1;
+    if (!m_db.isOpen())
+        return -1;
 
     QSqlQuery check(m_db);
     check.prepare("SELECT id FROM users WHERE username = :u");
@@ -154,7 +162,8 @@ int DatabaseManager::registerUser(const QString &username, const QString &passwo
         QaManager::logSystem("Ellenőrzési hiba: " + check.lastError().text(), true);
         return -1;
     }
-    if (check.next()) return -2; // Foglalt név
+    if (check.next())
+        return -2; // Foglalt név
 
     QSqlQuery ins(m_db);
     ins.prepare("INSERT INTO users (username, password, last_streak_date, streak_count) "
@@ -174,19 +183,22 @@ int DatabaseManager::registerUser(const QString &username, const QString &passwo
 
 int DatabaseManager::loginUser(const QString &username, const QString &password)
 {
-    if (!m_db.isOpen()) return -1;
+    if (!m_db.isOpen())
+        return -1;
     QSqlQuery q(m_db);
     q.prepare("SELECT id FROM users WHERE username = :u AND password = :p");
     q.bindValue(":u", username);
     q.bindValue(":p", password);
-    if (q.exec() && q.next()) return q.value(0).toInt();
+    if (q.exec() && q.next())
+        return q.value(0).toInt();
     return -1;
 }
 
 User DatabaseManager::getUser(int userId)
 {
     User u{};
-    if (!m_db.isOpen()) return u;
+    if (!m_db.isOpen())
+        return u;
     QSqlQuery q(m_db);
     q.prepare("SELECT username, last_streak_date, streak_count FROM users WHERE id = :id");
     q.bindValue(":id", userId);
@@ -201,7 +213,8 @@ User DatabaseManager::getUser(int userId)
 
 bool DatabaseManager::updateUsername(int userId, const QString &newUsername)
 {
-    if (!m_db.isOpen()) return false;
+    if (!m_db.isOpen())
+        return false;
     QSqlQuery q(m_db);
     q.prepare("UPDATE users SET username = :new WHERE id = :id");
     q.bindValue(":new", newUsername);
@@ -211,7 +224,8 @@ bool DatabaseManager::updateUsername(int userId, const QString &newUsername)
 
 bool DatabaseManager::updateStreak(int userId)
 {
-    if (!m_db.isOpen()) return false;
+    if (!m_db.isOpen())
+        return false;
     QSqlQuery q(m_db);
     q.prepare("UPDATE users SET streak_count = streak_count + 1, last_streak_date = date('now') "
               "WHERE id = :id AND date(last_streak_date) < date('now')");
@@ -221,29 +235,36 @@ bool DatabaseManager::updateStreak(int userId)
 
 int DatabaseManager::getTestCount(int userId)
 {
-    if (!m_db.isOpen()) return 0;
+    if (!m_db.isOpen())
+        return 0;
     QSqlQuery q(m_db);
     q.prepare("SELECT COUNT(*) FROM user_scores WHERE user_id = :id");
     q.bindValue(":id", userId);
-    if (q.exec() && q.next()) return q.value(0).toInt();
+    if (q.exec() && q.next())
+        return q.value(0).toInt();
     return 0;
 }
 
 int DatabaseManager::getLearnedWords(int userId)
 {
-    if (!m_db.isOpen()) return 0;
+    if (!m_db.isOpen())
+        return 0;
     QSqlQuery q(m_db);
     q.prepare("SELECT SUM(correct_answers) FROM user_scores WHERE user_id = :id");
     q.bindValue(":id", userId);
-    if (q.exec() && q.next() && !q.value(0).isNull()) return q.value(0).toInt();
+    if (q.exec() && q.next() && !q.value(0).isNull())
+        return q.value(0).toInt();
     return 0;
 }
 
-bool DatabaseManager::saveUserScore(int userId, Language language, int correctAnswers, int totalQuestions, int totalPoints)
+bool DatabaseManager::saveUserScore(
+    int userId, Language language, int correctAnswers, int totalQuestions, int totalPoints)
 {
-    if (!m_db.isOpen()) return false;
+    if (!m_db.isOpen())
+        return false;
     QSqlQuery q(m_db);
-    q.prepare("INSERT INTO user_scores (user_id, language, correct_answers, total_questions, total_points) "
+    q.prepare("INSERT INTO user_scores (user_id, language, correct_answers, total_questions, "
+              "total_points) "
               "VALUES (:uid, :lang, :ca, :tq, :tp)");
     q.bindValue(":uid", userId);
     q.bindValue(":lang", static_cast<int>(language));
@@ -256,15 +277,20 @@ bool DatabaseManager::saveUserScore(int userId, Language language, int correctAn
 QStringList DatabaseManager::loadHighScores(int limit)
 {
     QStringList results;
-    if (!m_db.isOpen()) return results;
+    if (!m_db.isOpen())
+        return results;
     QSqlQuery q(m_db);
-    q.prepare("SELECT u.username, SUM(s.total_points) as grand_total FROM user_scores s JOIN users u "
-              "ON s.user_id = u.id GROUP BY u.id ORDER BY grand_total DESC LIMIT :limit");
+    q.prepare(
+        "SELECT u.username, SUM(s.total_points) as grand_total FROM user_scores s JOIN users u "
+        "ON s.user_id = u.id GROUP BY u.id ORDER BY grand_total DESC LIMIT :limit");
     q.bindValue(":limit", limit);
     if (q.exec()) {
         int rank = 1;
         while (q.next()) {
-            results.append(QString("%1. %2 - %3 pont").arg(rank++).arg(q.value(0).toString()).arg(q.value(1).toInt()));
+            results.append(QString("%1. %2 - %3 pont")
+                               .arg(rank++)
+                               .arg(q.value(0).toString())
+                               .arg(q.value(1).toInt()));
         }
     }
     return results;
@@ -273,10 +299,12 @@ QStringList DatabaseManager::loadHighScores(int limit)
 PlayerStats DatabaseManager::getPlayerStatistics(int userId)
 {
     PlayerStats stats = {0, 0, 0, "Még nem játszott"};
-    if (!m_db.isOpen()) return stats;
+    if (!m_db.isOpen())
+        return stats;
     QSqlQuery q(m_db);
-    q.prepare("SELECT SUM(total_points), SUM(total_questions), SUM(correct_answers), MAX(played_at) "
-              "FROM user_scores WHERE user_id = :uid");
+    q.prepare(
+        "SELECT SUM(total_points), SUM(total_questions), SUM(correct_answers), MAX(played_at) "
+        "FROM user_scores WHERE user_id = :uid");
     q.bindValue(":uid", userId);
     if (q.exec() && q.next() && !q.value(0).isNull()) {
         stats.totalScore = q.value(0).toInt();
@@ -290,7 +318,8 @@ PlayerStats DatabaseManager::getPlayerStatistics(int userId)
 QPair<int, int> DatabaseManager::getStatsForLanguage(int userId, Language lang)
 {
     QPair<int, int> result(0, 0);
-    if (!m_db.isOpen()) return result;
+    if (!m_db.isOpen())
+        return result;
 
     QSqlQuery q(m_db);
     // Összeadjuk a helyes válaszokat (correct_answers) és az összes kérdést (total_questions)
