@@ -1,0 +1,150 @@
+2025-12-02 20:38:45 [INFO]: SQLite adatbázis sikeresen megnyitva: C:/Users/Dell/Documents/GitHub/agytorna-Vegleges/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/agytorna.db
+2025-12-02 20:38:45 [INFO]: --------------------------------------------------
+2025-12-02 20:38:45 [INFO]: SIKERES INDÍTÁS: Adatbázis kapcsolat aktív (connectToDatabase).
+2025-12-02 20:38:45 [INFO]: Adatbázis útvonala: C:/Users/Dell/Documents/GitHub/agytorna-Vegleges/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/agytorna.db
+2025-12-02 20:38:45 [INFO]: Megtalált táblák az adatbázisban: sqlite_sequence, users, questions, user_scores
+2025-12-02 20:38:45 [INFO]: --------------------------------------------------
+2025-12-02 20:38:45 [INFO]: ==========================================
+2025-12-02 20:38:45 [INFO]: === AUTOMATIKUS QA TESZTEK INDÍTÁSA ===
+2025-12-02 20:38:45 [INFO]: ==========================================
+2025-12-02 20:38:45 [INFO]: Adatbázis kapcsolat: AKTÍV és MEGFELELŐ.
+2025-12-02 20:38:45 [INFO]: [TESZT OK] Adatbázis kapcsolat aktív.
+2025-12-02 20:38:45 [INFO]: [TESZT OK] Log fájl (system_log.txt) fizikailag létezik.
+2025-12-02 20:38:45 [INFO]: [TESZT OK] Teszt felhasználó azonosítva (ID: 2).
+2025-12-02 20:38:45 [INFO]: [TESZT OK] Statisztika mentése sikeres.
+2025-12-02 20:38:45 [INFO]: [TESZT OK] Statisztika visszaolvasása valid adatokkal.
+2025-12-02 20:38:45 [INFO]: [TESZT OK] 5 kérdés ellenőrizve: Szerkezetileg mind helyes.
+2025-12-02 20:38:45 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:38:45 [INFO]: [TESZT OK] Pontszámítás (100+20) helyes.
+2025-12-02 20:38:45 [HIBA]: PONTOZÁSI HIBA: A pontszám meghaladja a maximumot! (99999 / 1000)
+2025-12-02 20:38:45 [INFO]: [TESZT OK] QA Error Report modul válaszol.
+2025-12-02 20:38:45 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:38:45 [INFO]: Nyelv beállítva: 1
+2025-12-02 20:38:45 [INFO]: Adatbázis kapcsolat: AKTÍV és MEGFELELŐ.
+2025-12-02 20:38:45 [INFO]: Kérdések betöltése adatbázisból...
+2025-12-02 20:38:45 [INFO]: Siker! 10 kérdés betöltve.
+2025-12-02 20:38:45 [INFO]: Helyes válasz! Új pontszám: 1
+2025-12-02 20:38:45 [INFO]: [TESZT OK] Játék logikája elfogadta a helyes választ.
+2025-12-02 20:38:45 [INFO]: [TESZT OK] Pontszám növekedett a helyes válasz után.
+2025-12-02 20:38:45 [INFO]: [TESZT OK] Következő kérdésre lépés működik.
+2025-12-02 20:38:45 [INFO]: ==========================================
+2025-12-02 20:38:45 [INFO]: === MINDEN TESZT BEFEJEZŐDÖTT ===
+2025-12-02 20:38:45 [INFO]: ==========================================
+2025-12-02 20:38:45 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:38:46 [INFO]: Főablak inicializálva.
+2025-12-02 20:45:43 [INFO]: SQLite adatbázis sikeresen megnyitva: C:/Users/Dell/Documents/GitHub/agytorna-Vegleges/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/agytorna.db
+2025-12-02 20:45:43 [INFO]: --------------------------------------------------
+2025-12-02 20:45:43 [INFO]: SIKERES INDÍTÁS: Adatbázis kapcsolat aktív (connectToDatabase).
+2025-12-02 20:45:43 [INFO]: Adatbázis útvonala: C:/Users/Dell/Documents/GitHub/agytorna-Vegleges/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/agytorna.db
+2025-12-02 20:45:43 [INFO]: Megtalált táblák az adatbázisban: sqlite_sequence, users, questions, user_scores
+2025-12-02 20:45:43 [INFO]: --------------------------------------------------
+2025-12-02 20:45:43 [INFO]: ==========================================
+2025-12-02 20:45:43 [INFO]: === AUTOMATIKUS QA TESZTEK INDÍTÁSA ===
+2025-12-02 20:45:43 [INFO]: ==========================================
+2025-12-02 20:45:43 [INFO]: Adatbázis kapcsolat: AKTÍV és MEGFELELŐ.
+2025-12-02 20:45:43 [INFO]: [TESZT OK] Adatbázis kapcsolat aktív.
+2025-12-02 20:45:43 [INFO]: [TESZT OK] Log fájl (system_log.txt) fizikailag létezik.
+2025-12-02 20:45:43 [INFO]: [TESZT OK] Teszt felhasználó azonosítva (ID: 2).
+2025-12-02 20:45:43 [INFO]: [TESZT OK] Statisztika mentése sikeres.
+2025-12-02 20:45:43 [INFO]: [TESZT OK] Statisztika visszaolvasása valid adatokkal.
+2025-12-02 20:45:43 [INFO]: [TESZT OK] 5 kérdés ellenőrizve: Szerkezetileg mind helyes.
+2025-12-02 20:45:43 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:45:43 [INFO]: [TESZT OK] Pontszámítás (100+20) helyes.
+2025-12-02 20:45:43 [HIBA]: PONTOZÁSI HIBA: A pontszám meghaladja a maximumot! (99999 / 1000)
+2025-12-02 20:45:43 [INFO]: [TESZT OK] QA Error Report modul válaszol.
+2025-12-02 20:45:43 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:45:43 [INFO]: Nyelv beállítva: 1
+2025-12-02 20:45:43 [INFO]: Adatbázis kapcsolat: AKTÍV és MEGFELELŐ.
+2025-12-02 20:45:43 [INFO]: Kérdések betöltése adatbázisból...
+2025-12-02 20:45:43 [INFO]: Siker! 10 kérdés betöltve.
+2025-12-02 20:45:43 [INFO]: Helyes válasz! Új pontszám: 1
+2025-12-02 20:45:43 [INFO]: [TESZT OK] Játék logikája elfogadta a helyes választ.
+2025-12-02 20:45:43 [INFO]: [TESZT OK] Pontszám növekedett a helyes válasz után.
+2025-12-02 20:45:43 [INFO]: [TESZT OK] Következő kérdésre lépés működik.
+2025-12-02 20:45:43 [INFO]: ==========================================
+2025-12-02 20:45:43 [INFO]: === MINDEN TESZT BEFEJEZŐDÖTT ===
+2025-12-02 20:45:43 [INFO]: ==========================================
+2025-12-02 20:45:43 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:45:44 [INFO]: Főablak inicializálva.
+2025-12-02 20:46:33 [INFO]: SQLite adatbázis sikeresen megnyitva: C:/Users/Dell/Documents/GitHub/agytorna-Vegleges/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/agytorna.db
+2025-12-02 20:46:33 [INFO]: --------------------------------------------------
+2025-12-02 20:46:33 [INFO]: SIKERES INDÍTÁS: Adatbázis kapcsolat aktív (connectToDatabase).
+2025-12-02 20:46:33 [INFO]: Adatbázis útvonala: C:/Users/Dell/Documents/GitHub/agytorna-Vegleges/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/agytorna.db
+2025-12-02 20:46:33 [INFO]: Megtalált táblák az adatbázisban: sqlite_sequence, users, questions, user_scores
+2025-12-02 20:46:33 [INFO]: --------------------------------------------------
+2025-12-02 20:46:33 [INFO]: ==========================================
+2025-12-02 20:46:33 [INFO]: === AUTOMATIKUS QA TESZTEK INDÍTÁSA ===
+2025-12-02 20:46:33 [INFO]: ==========================================
+2025-12-02 20:46:33 [INFO]: Adatbázis kapcsolat: AKTÍV és MEGFELELŐ.
+2025-12-02 20:46:33 [INFO]: [TESZT OK] Adatbázis kapcsolat aktív.
+2025-12-02 20:46:33 [INFO]: [TESZT OK] Log fájl (system_log.txt) fizikailag létezik.
+2025-12-02 20:46:33 [INFO]: [TESZT OK] Teszt felhasználó azonosítva (ID: 2).
+2025-12-02 20:46:33 [INFO]: [TESZT OK] Statisztika mentése sikeres.
+2025-12-02 20:46:33 [INFO]: [TESZT OK] Statisztika visszaolvasása valid adatokkal.
+2025-12-02 20:46:33 [INFO]: [TESZT OK] 5 kérdés ellenőrizve: Szerkezetileg mind helyes.
+2025-12-02 20:46:33 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:46:33 [INFO]: [TESZT OK] Pontszámítás (100+20) helyes.
+2025-12-02 20:46:33 [HIBA]: PONTOZÁSI HIBA: A pontszám meghaladja a maximumot! (99999 / 1000)
+2025-12-02 20:46:33 [INFO]: [TESZT OK] QA Error Report modul válaszol.
+2025-12-02 20:46:33 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:46:33 [INFO]: Nyelv beállítva: 1
+2025-12-02 20:46:33 [INFO]: Adatbázis kapcsolat: AKTÍV és MEGFELELŐ.
+2025-12-02 20:46:33 [INFO]: Kérdések betöltése adatbázisból...
+2025-12-02 20:46:33 [INFO]: Siker! 10 kérdés betöltve.
+2025-12-02 20:46:33 [INFO]: Helyes válasz! Új pontszám: 1
+2025-12-02 20:46:33 [INFO]: [TESZT OK] Játék logikája elfogadta a helyes választ.
+2025-12-02 20:46:33 [INFO]: [TESZT OK] Pontszám növekedett a helyes válasz után.
+2025-12-02 20:46:33 [INFO]: [TESZT OK] Következő kérdésre lépés működik.
+2025-12-02 20:46:33 [INFO]: ==========================================
+2025-12-02 20:46:33 [INFO]: === MINDEN TESZT BEFEJEZŐDÖTT ===
+2025-12-02 20:46:33 [INFO]: ==========================================
+2025-12-02 20:46:33 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:46:33 [INFO]: Főablak inicializálva.
+2025-12-02 20:46:35 [INFO]: Nyelv beállítva: 0
+2025-12-02 20:46:37 [INFO]: startGame() meghívva: Játéklogika inicializálása...
+2025-12-02 20:46:37 [INFO]: Adatbázis kapcsolat: AKTÍV és MEGFELELŐ.
+2025-12-02 20:46:37 [INFO]: Kérdések betöltése adatbázisból...
+2025-12-02 20:46:37 [INFO]: Siker! 10 kérdés betöltve.
+2025-12-02 20:46:37 [INFO]: Kvíz indul: Szókincs - Kezdő
+2025-12-02 20:46:41 [INFO]: Felhasználó megszakította a kvízt.
+2025-12-02 20:46:43 [INFO]: Nyelv beállítva: 1
+2025-12-02 20:46:44 [INFO]: startGame() meghívva: Játéklogika inicializálása...
+2025-12-02 20:46:44 [INFO]: Adatbázis kapcsolat: AKTÍV és MEGFELELŐ.
+2025-12-02 20:46:44 [INFO]: Kérdések betöltése adatbázisból...
+2025-12-02 20:46:44 [INFO]: Siker! 10 kérdés betöltve.
+2025-12-02 20:46:44 [INFO]: Kvíz indul: Szókincs - Kezdő
+2025-12-02 20:46:47 [INFO]: Felhasználó megszakította a kvízt.
+2025-12-02 20:49:33 [INFO]: SQLite adatbázis sikeresen megnyitva: C:/Users/Dell/Documents/GitHub/agytorna-Vegleges/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/agytorna.db
+2025-12-02 20:49:33 [INFO]: --------------------------------------------------
+2025-12-02 20:49:33 [INFO]: SIKERES INDÍTÁS: Adatbázis kapcsolat aktív (connectToDatabase).
+2025-12-02 20:49:33 [INFO]: Adatbázis útvonala: C:/Users/Dell/Documents/GitHub/agytorna-Vegleges/build/Desktop_Qt_6_10_1_MinGW_64_bit-Debug/agytorna.db
+2025-12-02 20:49:33 [INFO]: Megtalált táblák az adatbázisban: sqlite_sequence, users, questions, user_scores
+2025-12-02 20:49:33 [INFO]: --------------------------------------------------
+2025-12-02 20:49:33 [INFO]: ==========================================
+2025-12-02 20:49:33 [INFO]: === AUTOMATIKUS QA TESZTEK INDÍTÁSA ===
+2025-12-02 20:49:33 [INFO]: ==========================================
+2025-12-02 20:49:33 [INFO]: Adatbázis kapcsolat: AKTÍV és MEGFELELŐ.
+2025-12-02 20:49:33 [INFO]: [TESZT OK] Adatbázis kapcsolat aktív.
+2025-12-02 20:49:33 [INFO]: [TESZT OK] Log fájl (system_log.txt) fizikailag létezik.
+2025-12-02 20:49:33 [INFO]: [TESZT OK] Teszt felhasználó azonosítva (ID: 2).
+2025-12-02 20:49:33 [INFO]: [TESZT OK] Statisztika mentése sikeres.
+2025-12-02 20:49:33 [INFO]: [TESZT OK] Statisztika visszaolvasása valid adatokkal.
+2025-12-02 20:49:33 [INFO]: [TESZT OK] 5 kérdés ellenőrizve: Szerkezetileg mind helyes.
+2025-12-02 20:49:33 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:49:33 [INFO]: [TESZT OK] Pontszámítás (100+20) helyes.
+2025-12-02 20:49:33 [HIBA]: PONTOZÁSI HIBA: A pontszám meghaladja a maximumot! (99999 / 1000)
+2025-12-02 20:49:33 [INFO]: [TESZT OK] QA Error Report modul válaszol.
+2025-12-02 20:49:33 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:49:33 [INFO]: Nyelv beállítva: 1
+2025-12-02 20:49:33 [INFO]: Adatbázis kapcsolat: AKTÍV és MEGFELELŐ.
+2025-12-02 20:49:33 [INFO]: Kérdések betöltése adatbázisból...
+2025-12-02 20:49:33 [INFO]: Siker! 10 kérdés betöltve.
+2025-12-02 20:49:33 [INFO]: Helyes válasz! Új pontszám: 1
+2025-12-02 20:49:33 [INFO]: [TESZT OK] Játék logikája elfogadta a helyes választ.
+2025-12-02 20:49:33 [INFO]: [TESZT OK] Pontszám növekedett a helyes válasz után.
+2025-12-02 20:49:33 [INFO]: [TESZT OK] Következő kérdésre lépés működik.
+2025-12-02 20:49:33 [INFO]: ==========================================
+2025-12-02 20:49:33 [INFO]: === MINDEN TESZT BEFEJEZŐDÖTT ===
+2025-12-02 20:49:33 [INFO]: ==========================================
+2025-12-02 20:49:33 [INFO]: GameLogic példányosítva, adatok alaphelyzetben.
+2025-12-02 20:49:33 [INFO]: Főablak inicializálva.
