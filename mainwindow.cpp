@@ -879,7 +879,7 @@ void MainWindow::showStatisticsPage()
         int total = stats.second;
         double percent = (total > 0) ? ((double)correct / total * 100.0) : 0.0;
 
-        return QString("%1 szó | %2").arg(correct).arg(QString::number(percent, 'f', 0));
+        return QString("%1 szó").arg(correct).arg(QString::number(percent, 'f', 0));
     };
 
     // UI elemek frissítése
