@@ -5,9 +5,14 @@
 #include "databasemanager.h"
 #include "ui_mainwindow.h"
 #include "qamanager.h"
-#include <QInputDialog>
 #include <QSqlQuery>
-#include <QMessageBox>
+
+// ÚJ HEADEREK A DESIGNOS ABLAKOKHOZ
+#include <QDialog>
+#include <QFormLayout>
+#include <QLineEdit>
+#include <QDialogButtonBox>
+#include <QLabel>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -25,9 +30,12 @@ MainWindow::MainWindow(QWidget *parent)
     , selectedDifficultyButton(nullptr)
 {
     ui->setupUi(this);
+
+    // Hallás utáni gomb elrejtése (kérésre)
     if (ui->listeningButton) {
         ui->listeningButton->hide();
     }
+
     setupConnections();
     showMainMenu();
     loadStatisticsFromBackend();
@@ -81,97 +89,290 @@ void MainWindow::setMainMenuVisibility(bool showStats, bool showLanguages)
 }
 
 // ============================================================================
-// PROFIL KEZELÉS (Login / Regisztráció / Névváltás)
+// EGYEDI DESIGN SEGÉDFÜGGVÉNYEK
+// ============================================================================
+
+QString getDialogStyle() {
+    return R"(
+        QDialog { background-color: #ffffff; border-radius: 12px; border: 1px solid #bdc3c7; }
+        QLabel { font-size: 14px; color: #2c3e50; font-weight: bold; }
+        QLineEdit {
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 14px;
+            background-color: #f9f9f9;
+            color: #000000;              /* FONTOS: Fekete betűszín */
+            selection-background-color: #3498db;
+            selection-color: #ffffff;
+        }
+        QLineEdit:focus { border: 2px solid #3498db; background-color: #ffffff; }
+        /* Placeholder szöveg színe sötétebb szürkére állítva */
+        QLineEdit::placeholder { color: #7f8c8d; }
+
+        QPushButton {
+            background-color: #3498db;
+            color: white;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-weight: bold;
+            font-size: 14px;
+            min-height: 25px;
+        }
+        QPushButton:hover { background-color: #2980b9; }
+        QPushButton#cancelBtn { background-color: #95a5a6; }
+        QPushButton#cancelBtn:hover { background-color: #7f8c8d; }
+        QPushButton#deleteBtn { background-color: #e74c3c; }
+        QPushButton#deleteBtn:hover { background-color: #c0392b; }
+    )";
+}
+
+// ============================================================================
+// PROFIL KEZELÉS
 // ============================================================================
 
 void MainWindow::showProfilePage()
 {
+    // --- STÍLUSOS PROFIL ABLAK ---
+
     if (currentUserId != -1) {
+        // 1. Adatok lekérése (User + Statisztika)
         User u = DatabaseManager::instance().getUser(currentUserId);
+        PlayerStats stats = DatabaseManager::instance().getPlayerStatistics(currentUserId);
 
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("Fiók kezelése");
-        msgBox.setText(QString("Bejelentkezve: <b>%1</b>\nSorozat: %2 nap").arg(u.username).arg(u.streak));
-        msgBox.setIcon(QMessageBox::Information);
+        QDialog dlg(this);
+        dlg.setWindowTitle("Fiók kezelése");
+        dlg.setFixedSize(400, 380);
+        dlg.setStyleSheet(getDialogStyle());
+        dlg.setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
 
-        // Gombok
-        QPushButton *btnRename = msgBox.addButton("Névváltás ✏️", QMessageBox::ActionRole);
-        QPushButton *btnLogout = msgBox.addButton("Kijelentkezés 🚪", QMessageBox::DestructiveRole);
-        QPushButton *btnCancel = msgBox.addButton("Mégse", QMessageBox::RejectRole);
+        QVBoxLayout *layout = new QVBoxLayout(&dlg);
+        layout->setSpacing(15);
+        layout->setContentsMargins(30, 30, 30, 30);
 
-        msgBox.exec();
+        // Üdvözlő szöveg
+        QLabel *title = new QLabel(QString("Üdvözöllek, %1! 👋").arg(u.username));
+        title->setStyleSheet("font-size: 22px; color: #2c3e50; margin-bottom: 5px;");
+        title->setAlignment(Qt::AlignCenter);
 
-        if (msgBox.clickedButton() == btnRename) {
-            handleChangeUsername();
-        } else if (msgBox.clickedButton() == btnLogout) {
+        // --- STATISZTIKA SZEKCIÓ
+        QHBoxLayout *statsLayout = new QHBoxLayout();
+        statsLayout->setSpacing(10);
+
+        // Sorozat kártya
+        QLabel *streakLabel = new QLabel(QString("🔥 Sorozat\n%1 nap").arg(u.streak));
+        streakLabel->setAlignment(Qt::AlignCenter);
+        streakLabel->setStyleSheet("border: 2px solid #e67e22; border-radius: 10px; padding: 10px; color: #e67e22; font-size: 15px; background-color: #fff5e6;");
+
+        // Pontszám kártya (ÚJ)
+        QLabel *scoreLabel = new QLabel(QString("🏆 Pontszám\n%1").arg(stats.totalScore));
+        scoreLabel->setAlignment(Qt::AlignCenter);
+        scoreLabel->setStyleSheet("border: 2px solid #f1c40f; border-radius: 10px; padding: 10px; color: #d4ac0d; font-size: 15px; background-color: #fef9e7;");
+
+        statsLayout->addWidget(streakLabel);
+        statsLayout->addWidget(scoreLabel);
+        // ---------------------------------------------
+
+        QPushButton *btnRename = new QPushButton("Névváltás ✏️");
+        QPushButton *btnLogout = new QPushButton("Kijelentkezés 🚪");
+        btnLogout->setObjectName("deleteBtn");
+        QPushButton *btnClose = new QPushButton("Bezárás");
+        btnClose->setObjectName("cancelBtn");
+
+        layout->addWidget(title);
+        layout->addLayout(statsLayout);
+        layout->addSpacing(10);
+        layout->addWidget(btnRename);
+        layout->addWidget(btnLogout);
+        layout->addWidget(btnClose);
+
+        connect(btnRename, &QPushButton::clicked, [&]() { dlg.accept(); handleChangeUsername(); });
+        connect(btnLogout, &QPushButton::clicked, [&]() {
+            dlg.accept();
             currentUserId = -1;
             QaManager::logSystem("Felhasználó kijelentkezett.");
             QMessageBox::information(this, "Kilépés", "Sikeresen kijelentkeztél.");
             showMainMenu();
-        }
+        });
+        connect(btnClose, &QPushButton::clicked, &dlg, &QDialog::reject);
+
+        dlg.exec();
         return;
     }
 
     // HA NINCS BEJELENTKEZVE
-    QMessageBox msgBox;
-    msgBox.setWindowTitle("Agytorna - Fiók");
-    msgBox.setText("Lépj be vagy regisztrálj a haladásod mentéséhez!");
-    msgBox.setIcon(QMessageBox::Question);
+    QDialog dlg(this);
+    dlg.setWindowTitle("Belépés szükséges");
+    dlg.setFixedSize(400, 350);
+    dlg.setStyleSheet(getDialogStyle());
+    dlg.setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint);
 
-    QPushButton *btnLogin = msgBox.addButton("Bejelentkezés", QMessageBox::ActionRole);
-    QPushButton *btnReg = msgBox.addButton("Regisztráció", QMessageBox::ActionRole);
-    QPushButton *btnCancel = msgBox.addButton("Mégse", QMessageBox::RejectRole);
+    QVBoxLayout *layout = new QVBoxLayout(&dlg);
+    layout->setSpacing(15);
+    layout->setContentsMargins(30, 30, 30, 30);
 
-    msgBox.exec();
+    QLabel *icon = new QLabel("👤");
+    icon->setStyleSheet("font-size: 48px; margin-bottom: 10px;");
+    icon->setAlignment(Qt::AlignCenter);
 
-    if (msgBox.clickedButton() == btnLogin) handleLogin();
-    else if (msgBox.clickedButton() == btnReg) handleRegister();
+    QLabel *text = new QLabel("Lépj be vagy regisztrálj\na haladásod mentéséhez!");
+    text->setStyleSheet("font-size: 16px; color: #34495e; margin-bottom: 15px;");
+    text->setAlignment(Qt::AlignCenter);
+
+    QPushButton *btnLogin = new QPushButton("Bejelentkezés");
+    QPushButton *btnReg = new QPushButton("Regisztráció");
+    QPushButton *btnCancel = new QPushButton("Mégse");
+    btnCancel->setObjectName("cancelBtn");
+
+    layout->addWidget(icon);
+    layout->addWidget(text);
+    layout->addWidget(btnLogin);
+    layout->addWidget(btnReg);
+    layout->addWidget(btnCancel);
+
+    connect(btnLogin, &QPushButton::clicked, [&]() { dlg.accept(); handleLogin(); });
+    connect(btnReg, &QPushButton::clicked, [&]() { dlg.accept(); handleRegister(); });
+    connect(btnCancel, &QPushButton::clicked, &dlg, &QDialog::reject);
+
+    dlg.exec();
 }
 
 void MainWindow::handleLogin()
 {
-    bool ok;
-    QString username = QInputDialog::getText(this, "Bejelentkezés",
-                                             "Felhasználónév:", QLineEdit::Normal, "", &ok);
-    if (!ok || username.isEmpty()) return;
+    QDialog dlg(this);
+    dlg.setWindowTitle("Bejelentkezés");
+    dlg.setFixedSize(400, 350); // Megnövelve a feliratok miatt
+    dlg.setStyleSheet(getDialogStyle());
 
-    QString password = QInputDialog::getText(this, "Bejelentkezés",
-                                             "Jelszó:", QLineEdit::Password, "", &ok);
-    if (!ok || password.isEmpty()) return;
+    QVBoxLayout *layout = new QVBoxLayout(&dlg);
+    layout->setContentsMargins(30, 30, 30, 30);
+    layout->setSpacing(10); // Kicsit szűkebb térköz
 
-    int id = DatabaseManager::instance().loginUser(username, password);
-    if (id != -1) {
-        currentUserId = id;
-        QMessageBox::information(this, "Siker", "Sikeres bejelentkezés!\nÜdv, " + username + "!");
-        QaManager::logSystem("Felhasználó bejelentkezett: " + username);
-        loadStatisticsFromBackend();
-    } else {
-        QMessageBox::warning(this, "Hiba", "Hibás felhasználónév vagy jelszó!");
+    QLabel *title = new QLabel("Jelentkezz be!");
+    title->setAlignment(Qt::AlignCenter);
+    title->setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #2c3e50;");
+
+    // Felhasználónév mező
+    QLabel *userLabel = new QLabel("Felhasználónév:");
+    QLineEdit *userEdit = new QLineEdit();
+    userEdit->setPlaceholderText("Írd be a neved...");
+    userEdit->setFixedHeight(40);
+
+    // Jelszó mező
+    QLabel *passLabel = new QLabel("Jelszó:");
+    QLineEdit *passEdit = new QLineEdit();
+    passEdit->setPlaceholderText("Írd be a jelszavad...");
+    passEdit->setEchoMode(QLineEdit::Password);
+    passEdit->setFixedHeight(40);
+
+    QPushButton *btnOk = new QPushButton("Belépés");
+    btnOk->setFixedHeight(40);
+
+    QPushButton *btnCancel = new QPushButton("Mégse");
+    btnCancel->setObjectName("cancelBtn");
+    btnCancel->setFixedHeight(40);
+
+    QHBoxLayout *btnLayout = new QHBoxLayout();
+    btnLayout->addWidget(btnCancel);
+    btnLayout->addWidget(btnOk);
+
+    layout->addWidget(title);
+    layout->addWidget(userLabel); // Felirat hozzáadva
+    layout->addWidget(userEdit);
+    layout->addWidget(passLabel); // Felirat hozzáadva
+    layout->addWidget(passEdit);
+    layout->addStretch();
+    layout->addLayout(btnLayout);
+
+    connect(btnCancel, &QPushButton::clicked, &dlg, &QDialog::reject);
+    connect(btnOk, &QPushButton::clicked, &dlg, &QDialog::accept);
+
+    if (dlg.exec() == QDialog::Accepted) {
+        QString username = userEdit->text();
+        QString password = passEdit->text();
+
+        if (username.isEmpty() || password.isEmpty()) return;
+
+        int id = DatabaseManager::instance().loginUser(username, password);
+        if (id != -1) {
+            currentUserId = id;
+            QMessageBox::information(this, "Siker", "Sikeres bejelentkezés!\nÜdv, " + username + "!");
+            QaManager::logSystem("Felhasználó bejelentkezett: " + username);
+            loadStatisticsFromBackend();
+        } else {
+            QMessageBox::warning(this, "Hiba", "Hibás felhasználónév vagy jelszó!");
+        }
     }
 }
 
 void MainWindow::handleRegister()
 {
-    bool ok;
-    QString username = QInputDialog::getText(this, "Regisztráció",
-                                             "Válassz felhasználónevet:", QLineEdit::Normal, "", &ok);
-    if (!ok || username.isEmpty()) return;
+    QDialog dlg(this);
+    dlg.setWindowTitle("Regisztráció");
+    dlg.setFixedSize(400, 350); // Megnövelve
+    dlg.setStyleSheet(getDialogStyle());
 
-    QString password = QInputDialog::getText(this, "Regisztráció",
-                                             "Válassz jelszót:", QLineEdit::Password, "", &ok);
-    if (!ok || password.isEmpty()) return;
+    QVBoxLayout *layout = new QVBoxLayout(&dlg);
+    layout->setContentsMargins(30, 30, 30, 30);
+    layout->setSpacing(10);
 
-    int result = DatabaseManager::instance().registerUser(username, password);
+    QLabel *title = new QLabel("Hozz létre fiókot!");
+    title->setAlignment(Qt::AlignCenter);
+    title->setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #2c3e50;");
 
-    if (result == -2) {
-        QMessageBox::warning(this, "Hiba", "Ez a felhasználónév már foglalt!");
-    } else if (result == -1) {
-        QMessageBox::critical(this, "Hiba", "Adatbázis hiba történt a regisztráció során.\nEllenőrizd a log fájlt.");
-    } else {
-        currentUserId = result;
-        QMessageBox::information(this, "Siker", "Sikeres regisztráció!\nJó tanulást, " + username + "!");
-        QaManager::logSystem("Új felhasználó regisztrált: " + username);
-        loadStatisticsFromBackend();
+    // Felhasználónév
+    QLabel *userLabel = new QLabel("Válassz felhasználónevet:");
+    QLineEdit *userEdit = new QLineEdit();
+    userEdit->setPlaceholderText("Pl.: Tanulo123");
+    userEdit->setFixedHeight(40);
+
+    // Jelszó
+    QLabel *passLabel = new QLabel("Válassz jelszót:");
+    QLineEdit *passEdit = new QLineEdit();
+    passEdit->setPlaceholderText("Add meg a jelszavad...");
+    passEdit->setEchoMode(QLineEdit::Password);
+    passEdit->setFixedHeight(40);
+
+    QPushButton *btnOk = new QPushButton("Regisztráció");
+    btnOk->setFixedHeight(40);
+
+    QPushButton *btnCancel = new QPushButton("Mégse");
+    btnCancel->setObjectName("cancelBtn");
+    btnCancel->setFixedHeight(40);
+
+    QHBoxLayout *btnLayout = new QHBoxLayout();
+    btnLayout->addWidget(btnCancel);
+    btnLayout->addWidget(btnOk);
+
+    layout->addWidget(title);
+    layout->addWidget(userLabel); // Felirat
+    layout->addWidget(userEdit);
+    layout->addWidget(passLabel); // Felirat
+    layout->addWidget(passEdit);
+    layout->addStretch();
+    layout->addLayout(btnLayout);
+
+    connect(btnCancel, &QPushButton::clicked, &dlg, &QDialog::reject);
+    connect(btnOk, &QPushButton::clicked, &dlg, &QDialog::accept);
+
+    if (dlg.exec() == QDialog::Accepted) {
+        QString username = userEdit->text();
+        QString password = passEdit->text();
+
+        if (username.isEmpty() || password.isEmpty()) return;
+
+        int result = DatabaseManager::instance().registerUser(username, password);
+
+        if (result == -2) {
+            QMessageBox::warning(this, "Hiba", "Ez a felhasználónév már foglalt!");
+        } else if (result == -1) {
+            QMessageBox::critical(this, "Hiba", "Adatbázis hiba történt a regisztráció során.\nEllenőrizd a log fájlt.");
+        } else {
+            currentUserId = result;
+            QMessageBox::information(this, "Siker", "Sikeres regisztráció!\nJó tanulást, " + username + "!");
+            QaManager::logSystem("Új felhasználó regisztrált: " + username);
+            loadStatisticsFromBackend();
+        }
     }
 }
 
@@ -179,21 +380,58 @@ void MainWindow::handleChangeUsername()
 {
     User u = DatabaseManager::instance().getUser(currentUserId);
 
-    bool ok;
-    QString newName = QInputDialog::getText(this, "Névváltás",
-                                            "Új felhasználónév:", QLineEdit::Normal, u.username, &ok);
+    QDialog dlg(this);
+    dlg.setWindowTitle("Névváltás");
+    dlg.setFixedSize(400, 250); // Kicsit szélesebb
+    dlg.setStyleSheet(getDialogStyle());
 
-    if (ok && !newName.isEmpty() && newName != u.username) {
-        if (DatabaseManager::instance().updateUsername(currentUserId, newName)) {
-            QMessageBox::information(this, "Siker", "Felhasználónév sikeresen módosítva!");
-            QaManager::logSystem("Felhasználónév módosítva: " + u.username + " -> " + newName);
+    QVBoxLayout *layout = new QVBoxLayout(&dlg);
+    layout->setContentsMargins(30, 30, 30, 30);
 
-            showProfilePage(); // Újra megnyitjuk a profilt a friss névvel
-        } else {
-            QMessageBox::warning(this, "Hiba", "Nem sikerült a névváltás.\nLehet, hogy ez a név már foglalt.");
+    QLabel *title = new QLabel("Új felhasználónév:");
+    title->setStyleSheet("font-size: 16px; margin-bottom: 5px;");
+
+    QLineEdit *userEdit = new QLineEdit();
+    userEdit->setText(u.username);
+    userEdit->setPlaceholderText("Írd be az új nevet");
+    userEdit->setFixedHeight(40);
+
+    QPushButton *btnOk = new QPushButton("Mentés");
+    btnOk->setFixedHeight(40);
+
+    QPushButton *btnCancel = new QPushButton("Mégse");
+    btnCancel->setObjectName("cancelBtn");
+    btnCancel->setFixedHeight(40);
+
+    QHBoxLayout *btnLayout = new QHBoxLayout();
+    btnLayout->addWidget(btnCancel);
+    btnLayout->addWidget(btnOk);
+
+    layout->addWidget(title);
+    layout->addWidget(userEdit);
+    layout->addStretch();
+    layout->addLayout(btnLayout);
+
+    connect(btnCancel, &QPushButton::clicked, &dlg, &QDialog::reject);
+    connect(btnOk, &QPushButton::clicked, &dlg, &QDialog::accept);
+
+    if (dlg.exec() == QDialog::Accepted) {
+        QString newName = userEdit->text();
+
+        if (!newName.isEmpty() && newName != u.username) {
+            if (DatabaseManager::instance().updateUsername(currentUserId, newName)) {
+                QMessageBox::information(this, "Siker", "Felhasználónév sikeresen módosítva!");
+                QaManager::logSystem("Felhasználónév módosítva: " + u.username + " -> " + newName);
+                showProfilePage();
+            } else {
+                QMessageBox::warning(this, "Hiba", "Nem sikerült a névváltás.\nLehet, hogy ez a név már foglalt.");
+            }
         }
     }
 }
+// ============================================================================
+// ADATOK BETÖLTÉSE
+// ============================================================================
 
 void MainWindow::loadStatisticsFromBackend()
 {
@@ -524,6 +762,7 @@ void MainWindow::startGame()
 {
     QaManager::logSystem("startGame() meghívva: Játéklogika inicializálása...");
 
+    // 1. Játék adatok betöltése
     gameLogic.refreshQuestionPool(selectedCategory, selectedDifficulty);
 
     // 2. Ellenőrzés, hogy van-e kérdés
@@ -533,13 +772,13 @@ void MainWindow::startGame()
         return;
     }
 
-    // UI változók és pontszám alaphelyzetbe állítása
+    // 3. UI változók és pontszám alaphelyzetbe állítása
     correctAnswers = 0;
     totalPoints = 0;
     answerSelected = false;
     selectedAnswerIndex = -1;
 
-    //Kvíz oldal megjelenítése
+    // 4. Kvíz oldal megjelenítése és első kérdés
     QaManager::logSystem("Kvíz indul: " + getCategoryName(selectedCategory) + " - " + getDifficultyName(selectedDifficulty));
 
     QString categoryInfo = QString("%1 %2 | %3 %4")
@@ -672,6 +911,7 @@ void MainWindow::setupConnections()
     connect(ui->vocabularyButton, &QPushButton::clicked, this, &MainWindow::onVocabularySelected);
     connect(ui->grammarButton, &QPushButton::clicked, this, &MainWindow::onGrammarSelected);
     connect(ui->sentencesButton, &QPushButton::clicked, this, &MainWindow::onSentencesSelected);
+    // Hallás utáni törölve
 
     connect(ui->beginnerButton, &QPushButton::clicked, this, &MainWindow::onBeginnerSelected);
     connect(ui->intermediateButton, &QPushButton::clicked, this, &MainWindow::onIntermediateSelected);
@@ -865,7 +1105,7 @@ void MainWindow::updateStatistics()
 
 void MainWindow::showStatisticsPage()
 {
-    loadStatisticsFromBackend(); // Fejléc frissítése
+    loadStatisticsFromBackend();
 
     if (currentUserId == -1) {
         ui->stackedWidget->setCurrentWidget(ui->statisticsPage);
@@ -879,6 +1119,7 @@ void MainWindow::showStatisticsPage()
         int total = stats.second;
         double percent = (total > 0) ? ((double)correct / total * 100.0) : 0.0;
 
+        // Kivettem a % jelet
         return QString("%1 szó").arg(correct).arg(QString::number(percent, 'f', 0));
     };
 
